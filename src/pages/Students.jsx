@@ -3,6 +3,7 @@ import { Plus, Search, Eye, Pencil, Trash2, Users, Filter, Phone } from "lucide-
 import Modal from "../components/Modal";
 import { Avatar, EmptyState, SectionHeader, StatusBadge } from "../components/ui";
 import { CLASSES, SECTIONS } from "../data/mock";
+import { createStudentAPI, deleteStudentAPI } from "../services/api";
 
 const GENDERS = ["Male", "Female"];
 
@@ -50,11 +51,10 @@ export default function Students({ students, setStudents, globalQuery, openAdd, 
     return Object.keys(e).length === 0;
   };
 
-  const submit = () => {
+  const submit = async () => {
     if (!validate()) return;
-    const newStudent = {
+    const newStudentData = {
       ...form,
-      id: Date.now(),
       rollNo: Number(form.rollNo),
       status: "Active",
       feeStatus: "Pending",
@@ -64,13 +64,26 @@ export default function Students({ students, setStudents, globalQuery, openAdd, 
       dob: "—",
       bloodGroup: "—",
     };
-    setStudents((prev) => [newStudent, ...prev]);
+
+    try {
+      const saved = await createStudentAPI(newStudentData);
+      setStudents((prev) => [saved, ...prev]);
+    } catch (err) {
+      console.warn("Backend API offline or error, saving locally:", err.message);
+      setStudents((prev) => [{ ...newStudentData, id: Date.now() }, ...prev]);
+    }
+
     setForm(emptyForm);
     onCloseAdd();
   };
 
-  const removeStudent = (id) => {
-    setStudents((prev) => prev.filter((s) => s.id !== id));
+  const removeStudent = async (id) => {
+    try {
+      await deleteStudentAPI(id);
+    } catch (err) {
+      console.warn("Backend API offline or error, deleting locally:", err.message);
+    }
+    setStudents((prev) => prev.filter((s) => s.id !== id && s._id !== id));
     setDeleteTarget(null);
   };
 

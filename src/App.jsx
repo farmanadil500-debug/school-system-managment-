@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar from "./components/Sidebar";
 import Navbar from "./components/Navbar";
 import { ToastProvider } from "./components/Toast";
@@ -10,6 +10,7 @@ import Fees from "./pages/Fees";
 import Exams from "./pages/Exams";
 import Settings from "./pages/Settings";
 import { STUDENTS } from "./data/mock";
+import { fetchStudentsFromAPI } from "./services/api";
 
 function App() {
   const [active, setActive] = useState("dashboard");
@@ -18,9 +19,26 @@ function App() {
   const [query, setQuery] = useState("");
 
   const [students, setStudents] = useState(STUDENTS);
+  const [isBackendConnected, setIsBackendConnected] = useState(false);
   const [addStudentOpen, setAddStudentOpen] = useState(false);
   const [viewStudent, setViewStudent] = useState(null);
   const [collectFeeOpen, setCollectFeeOpen] = useState(false);
+
+  useEffect(() => {
+    async function loadInitialData() {
+      try {
+        const liveStudents = await fetchStudentsFromAPI();
+        if (Array.isArray(liveStudents) && liveStudents.length > 0) {
+          setStudents(liveStudents);
+          setIsBackendConnected(true);
+          console.log("Connected to MongoDB via Express API:", liveStudents.length, "students loaded");
+        }
+      } catch (err) {
+        console.info("Using mock data (Start the Express server on port 5000 to connect MongoDB):", err.message);
+      }
+    }
+    loadInitialData();
+  }, []);
 
   const navigate = (id) => {
     setActive(id);

@@ -4,6 +4,7 @@ import Modal from "../components/Modal";
 import { useToast } from "../components/Toast";
 import { Avatar, EmptyState, SectionHeader } from "../components/ui";
 import { PAYMENT_METHODS, feeStatusStyle, formatPKR } from "../data/mock";
+import { updateStudentAPI } from "../services/api";
 
 export default function Fees({ students, setStudents, openCollect, onCloseCollect }) {
   const { push } = useToast();
@@ -32,7 +33,7 @@ export default function Fees({ students, setStudents, openCollect, onCloseCollec
     setCollect({ rollNo: "", method: "Cash", amount: "" });
   };
 
-  const confirmCollect = () => {
+  const confirmCollect = async () => {
     if (!foundStudent) {
       push("No student found with that roll number.", "warning");
       return;
@@ -42,7 +43,17 @@ export default function Fees({ students, setStudents, openCollect, onCloseCollec
       push("Enter a valid amount.", "warning");
       return;
     }
-    setStudents((prev) => prev.map((s) => (s.id === foundStudent.id ? { ...s, feeStatus: "Paid" } : s)));
+
+    const targetId = foundStudent.id || foundStudent._id;
+    try {
+      await updateStudentAPI(targetId, { feeStatus: "Paid" });
+    } catch (err) {
+      console.warn("Backend API offline or error, updating locally:", err.message);
+    }
+
+    setStudents((prev) =>
+      prev.map((s) => ((s.id === targetId || s._id === targetId) ? { ...s, feeStatus: "Paid" } : s))
+    );
     setReceipt({
       student: foundStudent,
       amount: amt,
