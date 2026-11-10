@@ -2,12 +2,20 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
+import dns from "dns";
 import { fileURLToPath } from "url";
 import mongoose from "mongoose";
 import studentRoutes from "./routes/studentRoutes.js";
 import attendanceRoutes from "./routes/attendanceRoutes.js";
 import Student from "./models/Student.js";
 import { INITIAL_STUDENTS } from "./data/seedData.js";
+
+// Fix for Windows DNS SRV lookup (querySrv EBADRESP) when connecting to MongoDB Atlas
+try {
+  dns.setServers(["8.8.8.8", "8.8.4.4", "1.1.1.1"]);
+} catch (e) {
+  // Ignore in environments where setServers is restricted
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
