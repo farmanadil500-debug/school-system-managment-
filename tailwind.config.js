@@ -26,26 +26,26 @@ export default {
       },
       keyframes: {
         "fade-in": {
-          "0%": { opacity: "0", transform: "translateY(4px)" },
-          "100%": { opacity: "1", transform: "translateY(0)" },
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
         },
-        "scale-in": {
-          "0%": { opacity: "0", transform: "scale(0.97)" },
-          "100%": { opacity: "1", transform: "scale(1)" },
+        "modal-in": {
+          "0%": { opacity: "0", transform: "scale(0.92) translateY(14px)" },
+          "100%": { opacity: "1", transform: "scale(1) translateY(0)" },
         },
         "slide-in": {
           "0%": { transform: "translateX(-100%)" },
           "100%": { transform: "translateX(0)" },
         },
         "toast-in": {
-          "0%": { opacity: "0", transform: "translateY(12px) scale(0.98)" },
+          "0%": { opacity: "0", transform: "translateY(12px) scale(0.96)" },
           "100%": { opacity: "1", transform: "translateY(0) scale(1)" },
         },
       },
       animation: {
-        "fade-in": "fade-in 0.25s ease-out",
-        "scale-in": "scale-in 0.18s ease-out",
-        "slide-in": "slide-in 0.25s ease-out",
+        "fade-in": "fade-in 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
+        "modal-in": "modal-in 0.28s cubic-bezier(0.16, 1, 0.3, 1)",
+        "slide-in": "slide-in 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
         "toast-in": "toast-in 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
       },
     },

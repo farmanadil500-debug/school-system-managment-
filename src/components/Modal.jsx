@@ -24,9 +24,15 @@ export default function Modal({ open, onClose, title, subtitle, children, footer
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center p-0 sm:items-center sm:p-4">
-      <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm animate-fade-in" onClick={onClose} />
+      {/* Smooth fading backdrop */}
       <div
-        className={`relative z-10 w-full ${sizes[size]} animate-scale-in rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl`}
+        className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity duration-300 animate-fade-in"
+        onClick={onClose}
+      />
+
+      {/* Silky smooth floating modal box */}
+      <div
+        className={`relative z-10 w-full ${sizes[size]} animate-modal-in rounded-t-3xl bg-white shadow-2xl transition-all duration-300 sm:rounded-3xl border border-slate-100 overflow-hidden`}
       >
         <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-6 py-5">
           <div>
