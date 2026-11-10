@@ -47,6 +47,29 @@ export async function deleteStudentAPI(id) {
   return await res.json();
 }
 
+// ATTENDANCE APIS
+export async function fetchAttendanceAPI(date, className, section) {
+  const url = `${API_BASE}/attendance?date=${encodeURIComponent(date)}&class=${encodeURIComponent(className)}&section=${encodeURIComponent(section)}`;
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`Failed to fetch attendance: ${res.statusText}`);
+  }
+  return await res.json();
+}
+
+export async function saveAttendanceAPI(attendanceData) {
+  const res = await fetch(`${API_BASE}/attendance`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(attendanceData),
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.message || "Failed to save attendance");
+  }
+  return await res.json();
+}
+
 export async function checkServerHealth() {
   try {
     const res = await fetch(`${API_BASE}/health`);

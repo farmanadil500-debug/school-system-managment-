@@ -5,6 +5,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import mongoose from "mongoose";
 import studentRoutes from "./routes/studentRoutes.js";
+import attendanceRoutes from "./routes/attendanceRoutes.js";
 import Student from "./models/Student.js";
 import { INITIAL_STUDENTS } from "./data/seedData.js";
 
@@ -49,6 +50,7 @@ if (!MONGO_URI) {
 
 // Routes
 app.use("/api/students", studentRoutes);
+app.use("/api/attendance", attendanceRoutes);
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {

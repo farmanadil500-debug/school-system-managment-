@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import studentRoutes from "../server/routes/studentRoutes.js";
+import attendanceRoutes from "../server/routes/attendanceRoutes.js";
 import Student from "../server/models/Student.js";
 import { INITIAL_STUDENTS } from "../server/data/seedData.js";
 
@@ -45,6 +46,7 @@ app.use(async (req, res, next) => {
 
 // Mount Routes
 app.use("/api/students", studentRoutes);
+app.use("/api/attendance", attendanceRoutes);
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
