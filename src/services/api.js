@@ -70,6 +70,20 @@ export async function saveAttendanceAPI(attendanceData) {
   return await res.json();
 }
 
+export async function fetchAttendanceHistoryAPI(filter = {}) {
+  let url = `${API_BASE}/attendance`;
+  const params = new URLSearchParams();
+  if (filter.class && filter.class !== "All") params.append("class", filter.class);
+  if (filter.date) params.append("date", filter.date);
+  if (params.toString()) url += `?${params.toString()}`;
+
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`Failed to fetch attendance history: ${res.statusText}`);
+  }
+  return await res.json();
+}
+
 export async function checkServerHealth() {
   try {
     const res = await fetch(`${API_BASE}/health`);
