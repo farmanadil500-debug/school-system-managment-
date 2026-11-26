@@ -6,57 +6,214 @@
   html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    color-scheme: light;
   }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
   body {
-    @apply font-sans text-slate-700 antialiased;
+    @apply font-sans text-slate-700 antialiased bg-slate-50 dark:bg-slate-950 dark:text-slate-200;
   }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply dark:text-slate-100;
+  }
+}
+
+/* Silky smooth theme transition across entire application */
+body,
+#root,
+header,
+nav,
+aside,
+main,
+section,
+.card,
+.btn,
+.badge,
+input,
+select,
+textarea,
+table,
+thead,
+tbody,
+tr,
+th,
+td {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-duration: 250ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Universal Dark Theme Overrides for high-contrast crisp UI */
+html.dark .bg-white {
+  background-color: #0f172a !important;
+  /* slate-900 */
+}
+
+html.dark .bg-slate-50 {
+  background-color: #020617 !important;
+  /* slate-950 */
+}
+
+html.dark .bg-slate-50\/70,
+html.dark .bg-slate-50\/60,
+html.dark .bg-slate-50\/50,
+html.dark .bg-slate-50\/40,
+html.dark .bg-slate-50\/30 {
+  background-color: rgba(30, 41, 59, 0.75) !important;
+  /* slate-800 */
+}
+
+html.dark .bg-slate-100 {
+  background-color: #1e293b !important;
+  /* slate-800 */
+}
+
+html.dark .bg-brand-50,
+html.dark .bg-brand-50\/70,
+html.dark .bg-brand-50\/60,
+html.dark .bg-brand-50\/50,
+html.dark .bg-brand-50\/40,
+html.dark .bg-brand-50\/30,
+html.dark .bg-brand-50\/20 {
+  background-color: #1e293b !important;
+  /* dark slate pill */
+  color: #a5b4fc !important;
+}
+
+html.dark .from-white {
+  --tw-gradient-from: #0f172a var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgb(15 23 42 / 0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+
+html.dark .border-slate-200,
+html.dark .border-slate-100 {
+  border-color: #1e293b !important;
+  /* slate-800 */
+}
+
+html.dark .divide-slate-100> :not([hidden])~ :not([hidden]),
+html.dark .divide-slate-200> :not([hidden])~ :not([hidden]) {
+  border-color: #1e293b !important;
+}
+
+html.dark .text-slate-900 {
+  color: #f8fafc !important;
+  /* slate-50 - crisp white */
+}
+
+html.dark .text-slate-800 {
+  color: #f1f5f9 !important;
+  /* slate-100 - clear bright */
+}
+
+html.dark .text-slate-700 {
+  color: #e2e8f0 !important;
+  /* slate-200 - readable */
+}
+
+html.dark .text-slate-600 {
+  color: #cbd5e1 !important;
+  /* slate-300 */
+}
+
+html.dark .text-slate-500 {
+  color: #94a3b8 !important;
+  /* slate-400 */
+}
+
+html.dark select,
+html.dark input:not([type="checkbox"]):not([type="radio"]) {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+
+html.dark input:disabled,
+html.dark select:disabled {
+  background-color: #1e293b !important;
+  color: #94a3b8 !important;
+  border-color: #334155 !important;
+  opacity: 0.8 !important;
+}
+
+html.dark select option {
+  background-color: #0f172a !important;
+  color: #f8fafc !important;
+}
+
+html.dark table tbody tr:hover {
+  background-color: rgba(30, 41, 59, 0.6) !important;
 }
 
 @layer components {
   .card {
-    @apply rounded-2xl border border-slate-200 bg-white shadow-card;
+    @apply rounded-2xl border border-slate-200 bg-white shadow-card dark:border-slate-800 dark:bg-slate-900;
   }
+
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-150 ease-out focus:outline-none focus:ring-2 focus:ring-offset-2 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 disabled:active:scale-100 select-none;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold whitespace-nowrap transition-all duration-150 ease-out focus:outline-none focus:ring-2 focus:ring-offset-2 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 disabled:active:scale-100 select-none;
   }
+
   .btn-primary {
-    @apply btn bg-brand-600 text-white hover:bg-brand-700 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:scale-95 focus:ring-brand-500 shadow-sm;
+    @apply btn bg-brand-600 text-white hover:bg-brand-700 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:scale-95 focus:ring-brand-500 shadow-sm dark:bg-brand-600 dark:hover:bg-brand-500;
   }
+
   .btn-secondary {
-    @apply btn border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300 hover:shadow-sm hover:-translate-y-0.5 active:translate-y-0 active:scale-95 focus:ring-slate-300;
+    @apply btn border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300 hover:shadow-sm hover:-translate-y-0.5 active:translate-y-0 active:scale-95 focus:ring-slate-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700/80 dark:focus:ring-slate-700;
   }
+
   .btn-ghost {
-    @apply btn text-slate-600 hover:bg-slate-100 hover:text-slate-900 active:scale-95 focus:ring-slate-300;
+    @apply btn text-slate-600 hover:bg-slate-100 hover:text-slate-900 active:scale-95 focus:ring-slate-300 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100;
   }
+
   .input {
-    @apply w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-700 placeholder:text-slate-400 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100 transition;
+    @apply w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-700 placeholder:text-slate-400 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100 transition dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-brand-400 dark:focus:ring-brand-900/50;
   }
+
   .label {
-    @apply mb-1.5 block text-sm font-medium text-slate-700;
+    @apply mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300;
   }
+
   .badge {
-    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold;
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap;
   }
+
   .nav-link {
-    @apply flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-600 transition-all duration-150 hover:bg-slate-100 hover:text-slate-900;
+    @apply flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-600 transition-all duration-150 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100;
   }
+
   .nav-link-active {
-    @apply bg-brand-50 text-brand-700 hover:bg-brand-50 hover:text-brand-700;
+    @apply bg-brand-50 text-brand-700 hover:bg-brand-50 hover:text-brand-700 dark:bg-indigo-950/60 dark:text-brand-300 dark:hover:bg-indigo-950/60 dark:hover:text-brand-300;
   }
+
   .table-wrap {
     @apply overflow-x-auto;
   }
+
   .table {
     @apply w-full min-w-full text-left text-sm;
   }
+
   .table thead th {
-    @apply whitespace-nowrap px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500;
+    @apply whitespace-nowrap px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 dark:bg-slate-900/80;
   }
+
   .table tbody td {
-    @apply whitespace-nowrap px-4 py-3.5 text-slate-700;
+    @apply whitespace-nowrap px-4 py-3.5 text-slate-700 dark:text-slate-200;
   }
+
   .table tbody tr {
-    @apply border-t border-slate-100 transition-colors hover:bg-slate-50/70;
+    @apply border-t border-slate-100 transition-colors hover:bg-slate-50/70 dark:border-slate-800 dark:hover:bg-slate-800/50;
   }
 }
 
@@ -64,30 +221,50 @@
   width: 10px;
   height: 10px;
 }
+
 ::-webkit-scrollbar-thumb {
-  @apply rounded-full bg-slate-200;
+  @apply rounded-full bg-slate-200 dark:bg-slate-700;
 }
+
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-slate-300;
+  @apply bg-slate-300 dark:bg-slate-600;
 }
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 
 @media print {
+
+  html,
+  body,
+  .print-area,
+  .print-area *,
+  html.dark .bg-white,
+  html.dark .bg-slate-50,
+  html.dark .print-area,
+  html.dark .print-area * {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    border-color: #e2e8f0 !important;
+  }
+
   body * {
     visibility: hidden;
   }
+
   .print-area,
   .print-area * {
     visibility: visible;
   }
+
   .print-area {
     position: absolute;
     left: 0;
     top: 0;
     width: 100%;
   }
+
   .no-print {
     display: none !important;
   }

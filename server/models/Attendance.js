@@ -57,6 +57,8 @@ const attendanceSchema = new mongoose.Schema(
 // Ensure one attendance sheet per date + class + section
 attendanceSchema.index({ date: 1, class: 1, section: 1 }, { unique: true });
 
-const Attendance = mongoose.model("Attendance", attendanceSchema);
+const Attendance =
+  mongoose.models.LegacyAttendance ||
+  mongoose.model("LegacyAttendance", attendanceSchema, "legacy_attendances");
 
 export default Attendance;

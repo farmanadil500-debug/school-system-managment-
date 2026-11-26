@@ -1,7 +1,52 @@
-const FIRST = ["Ayesha", "Bilal", "Hira", "Zain", "Fatima", "Omar", "Sana", "Ali", "Noor", "Hamza", "Aiman", "Usman", "Zoya", "Bilal", "Mariam", "Hassan", "Areeba", "Talha", "Komal", "Raza"];
-const LAST = ["Khan", "Ahmed", "Malik", "Sheikh", "Raza", "Iqbal", "Butt", "Cheema", "Siddiqui", "Hashmi"];
+const FIRST = [
+  "Ayesha",
+  "Bilal",
+  "Hira",
+  "Zain",
+  "Fatima",
+  "Omar",
+  "Sana",
+  "Ali",
+  "Noor",
+  "Hamza",
+  "Aiman",
+  "Usman",
+  "Zoya",
+  "Bilal",
+  "Mariam",
+  "Hassan",
+  "Areeba",
+  "Talha",
+  "Komal",
+  "Raza",
+];
+const LAST = [
+  "Khan",
+  "Ahmed",
+  "Malik",
+  "Sheikh",
+  "Raza",
+  "Iqbal",
+  "Butt",
+  "Cheema",
+  "Siddiqui",
+  "Hashmi",
+];
 const PARENTS = ["Khan", "Ahmed", "Malik", "Sheikh", "Iqbal"];
-const CLASSES = ["Nursery", "KG", "Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5", "Grade 6", "Grade 7", "Grade 8", "Grade 9", "Grade 10"];
+const CLASSES = [
+  "Nursery",
+  "KG",
+  "Grade 1",
+  "Grade 2",
+  "Grade 3",
+  "Grade 4",
+  "Grade 5",
+  "Grade 6",
+  "Grade 7",
+  "Grade 8",
+  "Grade 9",
+  "Grade 10",
+];
 const SECTIONS = ["A", "B", "C"];
 
 export const INITIAL_STUDENTS = Array.from({ length: 24 }).map((_, i) => {
@@ -36,4 +81,3 @@ export const INITIAL_STUDENTS = Array.from({ length: 24 }).map((_, i) => {
     bloodGroup: ["A+", "B+", "O+", "AB+"][i % 4],
   };
 });
-

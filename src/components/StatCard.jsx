@@ -8,7 +8,9 @@ export default function StatCard({ icon: Icon, label, value, delta, deltaType = 
     sky: "from-sky-500 to-sky-600 text-white",
   };
   const deltaColor =
-    deltaType === "up" ? "text-emerald-600 bg-emerald-50" : "text-rose-600 bg-rose-50";
+    deltaType === "up"
+      ? "text-emerald-600 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-950/50"
+      : "text-rose-600 bg-rose-50 dark:text-rose-400 dark:bg-rose-950/50";
 
   return (
     <div className="card group p-5 transition-shadow duration-200 hover:shadow-cardhover">
@@ -20,9 +22,9 @@ export default function StatCard({ icon: Icon, label, value, delta, deltaType = 
           <span className={`badge ${deltaColor}`}>{deltaType === "up" ? "▲" : "▼"} {delta}</span>
         )}
       </div>
-      <p className="mt-4 text-sm font-medium text-slate-500">{label}</p>
-      <p className="mt-1 text-2xl font-bold tracking-tight text-slate-900">{value}</p>
-      {footer && <p className="mt-2 text-xs text-slate-400">{footer}</p>}
+      <p className="mt-4 text-sm font-medium text-slate-500 dark:text-slate-400">{label}</p>
+      <p className="mt-1 text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">{value}</p>
+      {footer && <p className="mt-2 text-xs text-slate-400 dark:text-slate-500">{footer}</p>}
     </div>
   );
 }

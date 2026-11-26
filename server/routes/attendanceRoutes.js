@@ -38,7 +38,9 @@ router.post("/", async (req, res) => {
     const { date, class: className, section, records } = req.body;
 
     if (!date || !className || !section || !Array.isArray(records)) {
-      return res.status(400).json({ message: "Date, class, section, and records array are required." });
+      return res
+        .status(400)
+        .json({ message: "Date, class, section, and records array are required." });
     }
 
     // Calculate totals

@@ -41,11 +41,11 @@ export function ToastProvider({ children }) {
           return (
             <div
               key={t.id}
-              className={`pointer-events-auto flex items-start gap-3 rounded-2xl bg-white p-4 shadow-cardhover ring-1 ${s.ring} animate-toast-in`}
+              className={`pointer-events-auto flex items-start gap-3 rounded-2xl bg-white p-4 shadow-cardhover ring-1 ${s.ring} animate-toast-in dark:bg-slate-900 dark:ring-slate-800`}
             >
               <Icon className={`mt-0.5 h-5 w-5 shrink-0 ${s.iconColor}`} />
-              <p className="flex-1 text-sm font-medium text-slate-700">{t.message}</p>
-              <button onClick={() => remove(t.id)} className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
+              <p className="flex-1 text-sm font-medium text-slate-700 dark:text-slate-200">{t.message}</p>
+              <button onClick={() => remove(t.id)} className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200">
                 <X className="h-4 w-4" />
               </button>
             </div>

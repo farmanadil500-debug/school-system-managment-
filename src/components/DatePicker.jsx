@@ -110,31 +110,31 @@ export default function DatePicker({ value, onChange, label = "Date" }) {
         type="button"
         onClick={() => setOpen((prev) => !prev)}
         className={`input flex items-center justify-between text-left transition-all ${
-          open ? "border-brand-500 ring-2 ring-brand-100" : ""
+          open ? "border-brand-500 ring-2 ring-brand-100 dark:ring-brand-900/50" : ""
         }`}
       >
-        <span className="flex items-center gap-2 font-medium text-slate-800">
-          <CalendarIcon className="h-4 w-4 text-brand-600" />
+        <span className="flex items-center gap-2 font-medium text-slate-800 dark:text-slate-100">
+          <CalendarIcon className="h-4 w-4 text-brand-600 dark:text-brand-400" />
           {formatDisplay(value)}
         </span>
-        <span className="text-xs text-slate-400 font-mono">
+        <span className="text-xs text-slate-400 dark:text-slate-500 font-mono">
           {value || "YYYY-MM-DD"}
         </span>
       </button>
 
       {/* Animated Dropdown Calendar */}
       {open && (
-        <div className="absolute left-0 top-full z-50 mt-2 w-72 rounded-2xl border border-slate-100 bg-white p-4 shadow-2xl animate-modal-in">
+        <div className="absolute left-0 top-full z-50 mt-2 w-72 rounded-2xl border border-slate-100 bg-white p-4 shadow-2xl animate-modal-in dark:border-slate-800 dark:bg-slate-900">
           {/* Header */}
-          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-            <h4 className="font-bold text-slate-800 text-sm">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+            <h4 className="font-bold text-slate-800 text-sm dark:text-slate-100">
               {MONTH_NAMES[viewMonth]} {viewYear}
             </h4>
             <div className="flex items-center gap-1">
               <button
                 type="button"
                 onClick={prevMonth}
-                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition"
+                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
                 title="Previous Month"
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -142,7 +142,7 @@ export default function DatePicker({ value, onChange, label = "Date" }) {
               <button
                 type="button"
                 onClick={nextMonth}
-                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition"
+                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
                 title="Next Month"
               >
                 <ChevronRight className="h-4 w-4" />
@@ -151,7 +151,7 @@ export default function DatePicker({ value, onChange, label = "Date" }) {
           </div>
 
           {/* Weekday Labels */}
-          <div className="grid grid-cols-7 gap-1 pt-3 text-center text-xs font-semibold text-slate-400">
+          <div className="grid grid-cols-7 gap-1 pt-3 text-center text-xs font-semibold text-slate-400 dark:text-slate-500">
             {DAY_NAMES.map((name) => (
               <div key={name} className="py-1">
                 {name}
@@ -182,10 +182,10 @@ export default function DatePicker({ value, onChange, label = "Date" }) {
                   onClick={() => handleSelectDay(day)}
                   className={`flex h-8 w-8 items-center justify-center rounded-xl text-xs font-medium transition-all ${
                     isSelected
-                      ? "bg-brand-600 text-white font-bold shadow-md shadow-brand-200 scale-105"
+                      ? "bg-brand-600 text-white font-bold shadow-md shadow-brand-200 scale-105 dark:shadow-none"
                       : isToday
-                      ? "border border-brand-300 text-brand-700 font-semibold hover:bg-brand-50"
-                      : "text-slate-700 hover:bg-slate-100 hover:scale-105"
+                      ? "border border-brand-300 text-brand-700 font-semibold hover:bg-brand-50 dark:border-brand-600 dark:text-brand-300 dark:hover:bg-brand-950/40"
+                      : "text-slate-700 hover:bg-slate-100 hover:scale-105 dark:text-slate-200 dark:hover:bg-slate-800"
                   }`}
                 >
                   {day}
@@ -195,18 +195,18 @@ export default function DatePicker({ value, onChange, label = "Date" }) {
           </div>
 
           {/* Footer Shortcuts */}
-          <div className="flex items-center justify-between border-t border-slate-100 pt-3 mt-3 text-xs">
+          <div className="flex items-center justify-between border-t border-slate-100 pt-3 mt-3 text-xs dark:border-slate-800">
             <button
               type="button"
               onClick={setToday}
-              className="font-semibold text-brand-600 hover:text-brand-700 transition"
+              className="font-semibold text-brand-600 hover:text-brand-700 transition dark:text-brand-400 dark:hover:text-brand-300"
             >
               Today
             </button>
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="text-slate-500 hover:text-slate-700 transition"
+              className="text-slate-500 hover:text-slate-700 transition dark:text-slate-400 dark:hover:text-slate-200"
             >
               Close
             </button>

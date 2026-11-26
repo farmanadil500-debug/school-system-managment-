@@ -1,632 +1,932 @@
-import React, { useMemo, useState } from "react";
-import { Plus, Search, Eye, Pencil, Trash2, Users, Filter, Phone, Download, Printer, Save, Check } from "lucide-react";
+import React, { useState, useEffect, useMemo } from "react";
+import {
+  Plus,
+  Search,
+  Eye,
+  Pencil,
+  Users,
+  Filter,
+  Phone,
+  Download,
+  Printer,
+  Loader2,
+  AlertCircle,
+  GraduationCap,
+  ArrowUpRight,
+  RefreshCw,
+} from "lucide-react";
 import Modal from "../components/Modal";
 import { useToast } from "../components/Toast";
 import { Avatar, EmptyState, SectionHeader, StatusBadge } from "../components/ui";
-import { CLASSES, SECTIONS } from "../data/mock";
-import { createStudentAPI, updateStudentAPI, deleteStudentAPI } from "../services/api";
+import { apiFetch } from "../lib/api-client";
+import {
+  fetchStudentsAPI,
+  admitStudentAPI,
+  updateStudentAPI,
+  getStudentByIdAPI,
+  promoteStudentsAPI,
+  downloadStudentsCSVAPI,
+} from "../lib/students-api";
+import { useAuth } from "../lib/auth-context";
+import { can, ROLES } from "../lib/permissions";
 
-const GENDERS = ["Male", "Female"];
-const STATUS_OPTIONS = ["Active", "Inactive"];
-
-const emptyForm = {
-  name: "",
-  rollNo: "",
-  class: "Grade 1",
-  section: "A",
-  gender: "Male",
-  parentName: "",
-  phone: "",
-  admissionDate: new Date().toISOString().slice(0, 10),
-  status: "Active",
-  feeStatus: "Pending",
-  feeAmount: 4500,
-  email: "",
-  address: "",
-  bloodGroup: "A+",
-};
-
-export default function Students({ students, setStudents, globalQuery, openAdd, onCloseAdd, onView }) {
+export default function Students({ globalQuery, openAdd, onCloseAdd, onView }) {
   const { push } = useToast();
+  const { user } = useAuth();
+  const canManage = can(user, "students:write");
+
+  const [students, setStudents] = useState([]);
+  const [classes, setClasses] = useState([]);
+  const [academicYears, setAcademicYears] = useState([]);
+  const [currentYear, setCurrentYear] = useState(null);
+
+  const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [classFilter, setClassFilter] = useState("All");
+  const [selectedClassId, setSelectedClassId] = useState("All");
+  const [selectedSectionId, setSelectedSectionId] = useState("All");
 
-  // Add form state
-  const [form, setForm] = useState(emptyForm);
-  const [errors, setErrors] = useState({});
+  // Selected students for bulk promotion
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [promoteModalOpen, setPromoteModalOpen] = useState(false);
 
-  // Edit form state
+  // Edit modal
   const [editTarget, setEditTarget] = useState(null);
-  const [editForm, setEditForm] = useState(emptyForm);
-  const [editErrors, setEditErrors] = useState({});
 
-  // Delete modal state
-  const [deleteTarget, setDeleteTarget] = useState(null);
+  // Load Classes & Academic Years once
+  useEffect(() => {
+    async function loadMeta() {
+      try {
+        const [clsRes, yearsRes] = await Promise.allSettled([
+          apiFetch("/api/v1/academic/classes"),
+          apiFetch("/api/v1/academic/years"),
+        ]);
 
-  const filtered = useMemo(() => {
-    return students.filter((s) => {
-      const q = (globalQuery || search || "").toLowerCase();
-      const matchQ =
-        !q ||
-        s.name.toLowerCase().includes(q) ||
-        s.rollNo.toString().includes(q) ||
-        s.parentName.toLowerCase().includes(q) ||
-        s.phone.toLowerCase().includes(q);
-      const matchClass = classFilter === "All" || s.class === classFilter;
-      return matchQ && matchClass;
-    });
-  }, [students, globalQuery, search, classFilter]);
+        if (clsRes.status === "fulfilled" && clsRes.value?.data) {
+          setClasses(clsRes.value.data);
+        }
+        if (yearsRes.status === "fulfilled" && yearsRes.value?.data) {
+          setAcademicYears(yearsRes.value.data);
+          const activeY = yearsRes.value.data.find((y) => y.isCurrent);
+          if (activeY) setCurrentYear(activeY);
+        }
+      } catch (_e) {
+        // Fallback
+      }
+    }
+    loadMeta();
+  }, []);
 
-  // Validation helper
-  const validateForm = (data, setErr) => {
-    const e = {};
-    if (!data.name.trim()) e.name = "Student name is required";
-    if (!data.rollNo || isNaN(Number(data.rollNo))) e.rollNo = "Valid roll number is required";
-    if (!data.parentName.trim()) e.parentName = "Parent name is required";
-    if (!data.phone.trim()) e.phone = "Phone number is required";
-    setErr(e);
-    return Object.keys(e).length === 0;
-  };
-
-  // Submit Add New Student
-  const submitAdd = async () => {
-    if (!validateForm(form, setErrors)) return;
-    const newStudentData = {
-      ...form,
-      rollNo: Number(form.rollNo),
-      feeAmount: Number(form.feeAmount || 4500),
-      email: form.email || form.name.toLowerCase().replace(/\s+/g, ".") + "@apex.edu",
-      address: form.address || "Gulberg, Lahore",
-    };
-
+  // Load Students
+  const loadStudents = async () => {
+    setIsLoading(true);
     try {
-      const saved = await createStudentAPI(newStudentData);
-      setStudents((prev) => [saved, ...prev]);
-      push(`Student "${saved.name}" added successfully!`, "success");
+      const res = await fetchStudentsAPI({
+        classId: selectedClassId,
+        sectionId: selectedSectionId,
+        q: globalQuery || search,
+      });
+
+      if (res?.data) {
+        setStudents(res.data);
+      }
     } catch (err) {
-      console.warn("Backend API offline or error, saving locally:", err.message);
-      const localStudent = { ...newStudentData, id: Date.now() };
-      setStudents((prev) => [localStudent, ...prev]);
-      push(`Student "${localStudent.name}" added locally!`, "success");
+      push(err.message || "Failed to load students", "error");
+    } finally {
+      setIsLoading(false);
     }
-
-    setForm(emptyForm);
-    onCloseAdd();
   };
 
-  // Open Edit Modal
-  const openEdit = (student) => {
-    setEditTarget(student);
-    setEditForm({
-      name: student.name || "",
-      rollNo: student.rollNo || "",
-      class: student.class || "Grade 1",
-      section: student.section || "A",
-      gender: student.gender || "Male",
-      parentName: student.parentName || "",
-      phone: student.phone || "",
-      admissionDate: student.admissionDate || new Date().toISOString().slice(0, 10),
-      status: student.status || "Active",
-      feeStatus: student.feeStatus || "Pending",
-      feeAmount: student.feeAmount || 4500,
-      email: student.email || "",
-      address: student.address || "",
-      bloodGroup: student.bloodGroup || "A+",
-    });
-    setEditErrors({});
-  };
+  useEffect(() => {
+    loadStudents();
+  }, [selectedClassId, selectedSectionId, globalQuery]);
 
-  // Submit Edit
-  const submitEdit = async () => {
-    if (!validateForm(editForm, setEditErrors)) return;
-    const targetId = editTarget.id || editTarget._id;
-    const updatedData = {
-      ...editForm,
-      rollNo: Number(editForm.rollNo),
-      feeAmount: Number(editForm.feeAmount || 4500),
-    };
+  // Derived sections based on selected class filter
+  const availableSections = useMemo(() => {
+    if (selectedClassId === "All") return [];
+    const cls = classes.find((c) => c._id === selectedClassId);
+    return cls?.sections || [];
+  }, [selectedClassId, classes]);
 
+  // Handle Export CSV
+  const handleExportCSV = async () => {
     try {
-      await updateStudentAPI(targetId, updatedData);
-      setStudents((prev) =>
-        prev.map((s) => ((s.id === targetId || s._id === targetId) ? { ...s, ...updatedData } : s))
-      );
-      push(`Student "${updatedData.name}" updated successfully!`, "success");
+      await downloadStudentsCSVAPI({
+        classId: selectedClassId,
+        sectionId: selectedSectionId,
+      });
+      push("Students roster downloaded successfully!", "success");
     } catch (err) {
-      console.warn("Backend API offline or error, updating locally:", err.message);
-      setStudents((prev) =>
-        prev.map((s) => ((s.id === targetId || s._id === targetId) ? { ...s, ...updatedData } : s))
-      );
-      push(`Student "${updatedData.name}" updated!`, "success");
+      push(err.message || "Failed to download CSV", "error");
     }
-
-    setEditTarget(null);
   };
 
-  // Remove Student
-  const removeStudent = async (id) => {
-    try {
-      await deleteStudentAPI(id);
-      push("Student removed from directory", "info");
-    } catch (err) {
-      console.warn("Backend API offline or error, deleting locally:", err.message);
-      push("Student removed locally", "info");
-    }
-    setStudents((prev) => prev.filter((s) => s.id !== id && s._id !== id));
-    setDeleteTarget(null);
+  // Toggle selection
+  const toggleSelectStudent = (id) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
   };
 
-  // Export to CSV Function
-  const exportToCSV = () => {
-    if (filtered.length === 0) {
-      push("No students to export.", "warning");
-      return;
+  const toggleSelectAll = () => {
+    if (selectedIds.length === students.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(students.map((s) => s._id));
     }
-    const headers = ["Roll No", "Name", "Class", "Section", "Gender", "Parent Name", "Phone", "Status", "Fee Status", "Admission Date"];
-    const rows = filtered.map((s) => [
-      s.rollNo,
-      `"${(s.name || "").replace(/"/g, '""')}"`,
-      `"${s.class || ""}"`,
-      `"${s.section || ""}"`,
-      `"${s.gender || ""}"`,
-      `"${(s.parentName || "").replace(/"/g, '""')}"`,
-      `"${s.phone || ""}"`,
-      `"${s.status || ""}"`,
-      `"${s.feeStatus || ""}"`,
-      `"${s.admissionDate || ""}"`,
-    ]);
-
-    const csvString = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
-    const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", `apex_students_${new Date().toISOString().slice(0, 10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    push(`Exported ${filtered.length} students to CSV!`, "success");
   };
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <SectionHeader
         title="Students Directory"
         subtitle={`${students.length} students enrolled · Manage admissions & records`}
         action={
           <div className="flex flex-wrap items-center gap-2">
-            <button className="btn-secondary" onClick={exportToCSV} title="Download students as Excel / CSV file">
+            {canManage && selectedIds.length > 0 && (
+              <button
+                onClick={() => setPromoteModalOpen(true)}
+                className="btn bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm animate-fade-in"
+              >
+                <ArrowUpRight className="h-4 w-4" />
+                Promote Selected ({selectedIds.length})
+              </button>
+            )}
+
+            <button
+              className="btn-secondary"
+              onClick={handleExportCSV}
+              title="Download students roster as CSV file"
+            >
               <Download className="h-4 w-4" /> Export CSV
             </button>
-            <button className="btn-primary" onClick={openAdd}>
-              <Plus className="h-4 w-4" /> Add Student
-            </button>
+
+            {canManage && (
+              <button
+                onClick={openAdd}
+                className="btn-primary"
+              >
+                <Plus className="h-4 w-4" /> New Admission
+              </button>
+            )}
           </div>
         }
       />
 
-      {/* Search and Filters */}
+      {/* Filter and Search Bar */}
       <div className="card p-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="relative flex-1">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input
-              value={globalQuery || search}
+              value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by name, roll no, parent, phone…"
-              className="input pl-10"
-              disabled={!!globalQuery}
+              onKeyDown={(e) => e.key === "Enter" && loadStudents()}
+              placeholder="Search by student name or admission number…"
+              className="w-full rounded-xl border border-slate-200 bg-white py-2 pl-10 pr-4 text-sm text-slate-800 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
             />
-            {globalQuery && <p className="mt-1 text-xs text-slate-400">Driven by global search</p>}
           </div>
-          <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-slate-400" />
-            <select value={classFilter} onChange={(e) => setClassFilter(e.target.value)} className="input w-auto">
+
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Class Filter */}
+            <select
+              value={selectedClassId}
+              onChange={(e) => {
+                setSelectedClassId(e.target.value);
+                setSelectedSectionId("All");
+              }}
+              className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
+            >
               <option value="All">All Classes</option>
-              {CLASSES.map((c) => (
-                <option key={c} value={c}>{c}</option>
+              {classes.map((c) => (
+                <option key={c._id} value={c._id}>
+                  {c.name}
+                </option>
               ))}
             </select>
+
+            {/* Section Filter */}
+            {availableSections.length > 0 && (
+              <select
+                value={selectedSectionId}
+                onChange={(e) => setSelectedSectionId(e.target.value)}
+                className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
+              >
+                <option value="All">All Sections</option>
+                {availableSections.map((s) => (
+                  <option key={s._id} value={s._id}>
+                    Sec {s.name}
+                  </option>
+                ))}
+              </select>
+            )}
+
+            <button
+              onClick={loadStudents}
+              className="rounded-xl border border-slate-200 bg-white p-2 text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+              title="Refresh roster"
+            >
+              <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+            </button>
           </div>
         </div>
       </div>
 
       {/* Students Table */}
       <div className="card overflow-hidden">
-        {filtered.length === 0 ? (
-          <EmptyState
-            icon={Users}
-            title="No students found"
-            subtitle="Try adjusting your search or filter, or add a new student to the directory."
-            action={
-              <button className="btn-primary" onClick={openAdd}>
-                <Plus className="h-4 w-4" /> Add Student
-              </button>
-            }
-          />
-        ) : (
-          <div className="table-wrap">
-            <table className="table">
-              <thead className="bg-slate-50/70">
-                <tr>
-                  <th>Student</th>
-                  <th>Roll No</th>
-                  <th>Class</th>
-                  <th>Parent</th>
-                  <th>Contact</th>
-                  <th>Status</th>
-                  <th className="text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((s) => (
-                  <tr key={s.id || s._id}>
-                    <td>
-                      <div className="flex items-center gap-3">
-                        <Avatar name={s.name} />
-                        <div>
-                          <p className="font-semibold text-slate-800">{s.name}</p>
-                          <p className="text-xs text-slate-500">Admitted {s.admissionDate}</p>
-                        </div>
+        <table className="w-full text-left text-sm text-slate-600 dark:text-slate-300">
+          <thead className="border-b border-slate-100 bg-slate-50/70 text-xs font-semibold text-slate-500 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-400">
+            <tr>
+              {canManage && (
+                <th className="w-10 px-4 py-3.5 text-center">
+                  <input
+                    type="checkbox"
+                    checked={students.length > 0 && selectedIds.length === students.length}
+                    onChange={toggleSelectAll}
+                    className="rounded text-brand-600"
+                  />
+                </th>
+              )}
+              <th className="px-4 py-3.5">Student / Admission No</th>
+              <th className="px-4 py-3.5">Class & Section</th>
+              <th className="px-4 py-3.5">Roll No</th>
+              <th className="px-4 py-3.5">Parent / Contact</th>
+              <th className="px-4 py-3.5">Status</th>
+              <th className="px-4 py-3.5 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+            {isLoading ? (
+              <tr>
+                <td colSpan={canManage ? 7 : 6} className="py-12 text-center text-slate-400">
+                  <Loader2 className="mx-auto h-6 w-6 animate-spin text-brand-600" />
+                  <p className="mt-2 text-xs">Loading student records…</p>
+                </td>
+              </tr>
+            ) : students.length === 0 ? (
+              <tr>
+                <td colSpan={canManage ? 7 : 6} className="py-12 text-center text-slate-400">
+                  <Users className="mx-auto h-8 w-8 text-slate-300" />
+                  <p className="mt-2 text-sm font-semibold text-slate-600">No students found</p>
+                  <p className="text-xs text-slate-400">Try adjusting your filters or admit a new student</p>
+                </td>
+              </tr>
+            ) : (
+              students.map((s) => (
+                <tr key={s._id} className="hover:bg-slate-50/50 transition">
+                  {canManage && (
+                    <td className="px-4 py-3.5 text-center">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.includes(s._id)}
+                        onChange={() => toggleSelectStudent(s._id)}
+                        className="rounded text-brand-600"
+                      />
+                    </td>
+                  )}
+                  <td className="px-4 py-3.5">
+                    <div className="flex items-center gap-3">
+                      <Avatar name={s.name} size="sm" />
+                      <div>
+                        <p className="font-semibold text-slate-900">{s.name}</p>
+                        <span className="font-mono text-xs text-brand-700 bg-brand-50 px-1.5 py-0.5 rounded dark:bg-brand-950/60 dark:text-brand-300">
+                          {s.admissionNo}
+                        </span>
                       </div>
-                    </td>
-                    <td>
-                      <span className="font-mono text-xs font-semibold px-2 py-1 rounded bg-slate-100 text-slate-700">
-                        #{s.rollNo}
-                      </span>
-                    </td>
-                    <td>
-                      <span className="badge bg-slate-100 text-slate-600">
-                        {s.class} · {s.section}
-                      </span>
-                    </td>
-                    <td className="text-slate-600">{s.parentName}</td>
-                    <td>
-                      <span className="text-slate-600 text-sm">{s.phone}</span>
-                    </td>
-                    <td>
-                      <StatusBadge status={s.status} />
-                    </td>
-                    <td>
-                      <div className="flex items-center justify-end gap-1">
+                    </div>
+                  </td>
+                  <td className="px-4 py-3.5 font-medium text-slate-800">
+                    {s.className} · {s.sectionName}
+                  </td>
+                  <td className="px-4 py-3.5 font-mono text-xs text-slate-600">
+                    #{s.rollNo}
+                  </td>
+                  <td className="px-4 py-3.5">
+                    <p className="font-medium text-slate-800">{s.parentName}</p>
+                    <p className="text-xs text-slate-400">{s.parentPhone}</p>
+                  </td>
+                  <td className="px-4 py-3.5">
+                    <StatusBadge status={s.status} />
+                  </td>
+                  <td className="px-4 py-3.5 text-right">
+                    <div className="flex items-center justify-end gap-1.5">
+                      <button
+                        onClick={() => onView(s)}
+                        className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition"
+                        title="View Full Profile"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </button>
+                      {canManage && (
                         <button
-                          onClick={() => onView(s)}
-                          className="rounded-lg p-2 text-slate-400 hover:bg-brand-50 hover:text-brand-600 transition"
-                          title="View Profile & Print Card"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => openEdit(s)}
-                          className="rounded-lg p-2 text-slate-400 hover:bg-sky-50 hover:text-sky-600 transition"
+                          onClick={() => setEditTarget(s)}
+                          className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition"
                           title="Edit Student"
                         >
                           <Pencil className="h-4 w-4" />
                         </button>
-                        <button
-                          onClick={() => setDeleteTarget(s)}
-                          className="rounded-lg p-2 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition"
-                          title="Delete Student"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
 
-      {/* ADD STUDENT MODAL */}
-      <Modal
-        open={openAdd}
-        onClose={onCloseAdd}
-        title="Add New Student"
-        subtitle="Register a new admission into the school directory"
-        size="lg"
-        footer={
-          <>
-            <button className="btn-secondary" onClick={onCloseAdd}>Cancel</button>
-            <button className="btn-primary" onClick={submitAdd}>
-              <Plus className="h-4 w-4" /> Add Student
-            </button>
-          </>
-        }
-      >
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field label="Full Name" error={errors.name}>
-            <input
-              className="input"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              placeholder="e.g. Ayesha Khan"
-            />
-          </Field>
-          <Field label="Roll Number" error={errors.rollNo}>
-            <input
-              className="input"
-              type="number"
-              value={form.rollNo}
-              onChange={(e) => setForm({ ...form, rollNo: e.target.value })}
-              placeholder="e.g. 101"
-            />
-          </Field>
-          <Field label="Class">
-            <select className="input" value={form.class} onChange={(e) => setForm({ ...form, class: e.target.value })}>
-              {CLASSES.map((c) => (
-                <option key={c}>{c}</option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Section">
-            <select className="input" value={form.section} onChange={(e) => setForm({ ...form, section: e.target.value })}>
-              {SECTIONS.map((c) => (
-                <option key={c}>{c}</option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Gender">
-            <select className="input" value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })}>
-              {GENDERS.map((g) => (
-                <option key={g}>{g}</option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Admission Date">
-            <input
-              type="date"
-              className="input"
-              value={form.admissionDate}
-              onChange={(e) => setForm({ ...form, admissionDate: e.target.value })}
-            />
-          </Field>
-          <Field label="Parent / Guardian Name" error={errors.parentName}>
-            <input
-              className="input"
-              value={form.parentName}
-              onChange={(e) => setForm({ ...form, parentName: e.target.value })}
-              placeholder="e.g. Mr. Tariq Khan"
-            />
-          </Field>
-          <Field label="Phone Number" error={errors.phone}>
-            <input
-              className="input"
-              value={form.phone}
-              onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              placeholder="e.g. +92 300 123 4567"
-            />
-          </Field>
-        </div>
-      </Modal>
+      {/* Admission Modal */}
+      {openAdd && (
+        <AdmissionModal
+          classes={classes}
+          onClose={onCloseAdd}
+          onSuccess={() => {
+            onCloseAdd();
+            loadStudents();
+            push("Student admitted successfully!", "success");
+          }}
+        />
+      )}
 
-      {/* EDIT STUDENT MODAL */}
-      <Modal
-        open={!!editTarget}
-        onClose={() => setEditTarget(null)}
-        title={`Edit Student: ${editTarget?.name || ""}`}
-        subtitle="Update student details, class, or contact information"
-        size="lg"
-        footer={
-          <>
-            <button className="btn-secondary" onClick={() => setEditTarget(null)}>Cancel</button>
-            <button className="btn-primary" onClick={submitEdit}>
-              <Save className="h-4 w-4" /> Save Changes
-            </button>
-          </>
-        }
-      >
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field label="Full Name" error={editErrors.name}>
-            <input
-              className="input"
-              value={editForm.name}
-              onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-            />
-          </Field>
-          <Field label="Roll Number" error={editErrors.rollNo}>
-            <input
-              className="input"
-              type="number"
-              value={editForm.rollNo}
-              onChange={(e) => setEditForm({ ...editForm, rollNo: e.target.value })}
-            />
-          </Field>
-          <Field label="Class">
-            <select
-              className="input"
-              value={editForm.class}
-              onChange={(e) => setEditForm({ ...editForm, class: e.target.value })}
-            >
-              {CLASSES.map((c) => (
-                <option key={c}>{c}</option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Section">
-            <select
-              className="input"
-              value={editForm.section}
-              onChange={(e) => setEditForm({ ...editForm, section: e.target.value })}
-            >
-              {SECTIONS.map((c) => (
-                <option key={c}>{c}</option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Gender">
-            <select
-              className="input"
-              value={editForm.gender}
-              onChange={(e) => setEditForm({ ...editForm, gender: e.target.value })}
-            >
-              {GENDERS.map((g) => (
-                <option key={g}>{g}</option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Status">
-            <select
-              className="input"
-              value={editForm.status}
-              onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
-            >
-              {STATUS_OPTIONS.map((st) => (
-                <option key={st}>{st}</option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Parent / Guardian Name" error={editErrors.parentName}>
-            <input
-              className="input"
-              value={editForm.parentName}
-              onChange={(e) => setEditForm({ ...editForm, parentName: e.target.value })}
-            />
-          </Field>
-          <Field label="Phone Number" error={editErrors.phone}>
-            <input
-              className="input"
-              value={editForm.phone}
-              onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-            />
-          </Field>
-          <Field label="Email Address">
-            <input
-              className="input"
-              value={editForm.email}
-              onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-            />
-          </Field>
-          <Field label="Residential Address">
-            <input
-              className="input"
-              value={editForm.address}
-              onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
-            />
-          </Field>
-        </div>
-      </Modal>
+      {/* Edit Student Modal */}
+      {editTarget && (
+        <EditStudentModal
+          student={editTarget}
+          onClose={() => setEditTarget(null)}
+          onSuccess={() => {
+            setEditTarget(null);
+            loadStudents();
+            push("Student updated successfully!", "success");
+          }}
+        />
+      )}
 
-      {/* DELETE CONFIRMATION MODAL */}
-      <Modal
-        open={!!deleteTarget}
-        onClose={() => setDeleteTarget(null)}
-        title="Confirm Deletion"
-        subtitle="This action cannot be undone"
-        size="sm"
-        footer={
-          <>
-            <button className="btn-secondary" onClick={() => setDeleteTarget(null)}>Cancel</button>
-            <button
-              className="btn bg-rose-600 text-white hover:bg-rose-700"
-              onClick={() => removeStudent(deleteTarget?.id || deleteTarget?._id)}
-            >
-              <Trash2 className="h-4 w-4" /> Delete Student
-            </button>
-          </>
-        }
-      >
-        <p className="text-sm text-slate-600">
-          Are you sure you want to remove{" "}
-          <strong className="text-slate-900">{deleteTarget?.name}</strong> (Roll #{deleteTarget?.rollNo}) from the school directory?
-        </p>
-      </Modal>
+      {/* Promote Students Modal */}
+      {promoteModalOpen && (
+        <PromoteModal
+          studentIds={selectedIds}
+          classes={classes}
+          academicYears={academicYears}
+          onClose={() => setPromoteModalOpen(false)}
+          onSuccess={(msg) => {
+            setPromoteModalOpen(false);
+            setSelectedIds([]);
+            loadStudents();
+            push(msg, "success");
+          }}
+        />
+      )}
     </div>
   );
 }
 
-function Field({ label, error, children }) {
+// ─── Admission Modal ──────────────────────────────────────────────────────────
+
+function AdmissionModal({ classes, onClose, onSuccess }) {
+  const [name, setName] = useState("");
+  const [dob, setDob] = useState("2015-05-10");
+  const [gender, setGender] = useState("male");
+  const [classId, setClassId] = useState(classes[0]?._id || "");
+  const [sectionId, setSectionId] = useState(classes[0]?.sections?.[0]?._id || "");
+  const [guardianName, setGuardianName] = useState("");
+  const [guardianRelation, setGuardianRelation] = useState("father");
+  const [guardianPhone, setGuardianPhone] = useState("");
+  const [address, setAddress] = useState("");
+  const [bloodGroup, setBloodGroup] = useState("A+");
+  const [createParentLogin, setCreateParentLogin] = useState(true);
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
+  const activeClass = classes.find((c) => c._id === classId);
+  const sectionsForClass = activeClass?.sections || [];
+
+  const handleClassChange = (newClassId) => {
+    setClassId(newClassId);
+    const cls = classes.find((c) => c._id === newClassId);
+    if (cls?.sections?.length) {
+      setSectionId(cls.sections[0]._id);
+    } else {
+      setSectionId("");
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    if (!sectionId) {
+      setError("Please select a class that contains at least one section.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await admitStudentAPI({
+        name,
+        dob,
+        gender,
+        classId,
+        sectionId,
+        address,
+        bloodGroup,
+        guardian: {
+          name: guardianName,
+          relation: guardianRelation,
+          phone: guardianPhone,
+        },
+        createParentLogin,
+      });
+      onSuccess();
+    } catch (err) {
+      setError(err.message || "Failed to admit student");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <div>
-      <label className="label">{label}</label>
-      {children}
-      {error && <p className="mt-1 text-xs font-medium text-rose-600">{error}</p>}
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm animate-fade-in overflow-y-auto">
+      <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl my-8">
+        <h3 className="text-lg font-bold text-slate-900">New Student Admission</h3>
+        <p className="text-xs text-slate-500">
+          Enrolls student and issues an official sequence-generated Admission Number
+        </p>
+
+        {error && (
+          <div className="mt-3 flex items-center gap-2 rounded-xl bg-rose-50 p-3 text-xs text-rose-700">
+            <AlertCircle className="h-4 w-4 shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="col-span-2">
+              <label className="label">Student Full Name *</label>
+              <input
+                required
+                placeholder="e.g. Zainab Bibi"
+                className="input"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label className="label">Date of Birth *</label>
+              <input
+                type="date"
+                required
+                className="input"
+                value={dob}
+                onChange={(e) => setDob(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label className="label">Gender *</label>
+              <select
+                className="input"
+                value={gender}
+                onChange={(e) => setGender(e.target.value)}
+              >
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 border-t border-slate-100 pt-3">
+            <div>
+              <label className="label">Grade Level / Class *</label>
+              <select
+                required
+                className="input"
+                value={classId}
+                onChange={(e) => handleClassChange(e.target.value)}
+              >
+                {classes.map((c) => (
+                  <option key={c._id} value={c._id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="label">Section *</label>
+              <select
+                required
+                className="input"
+                value={sectionId}
+                onChange={(e) => setSectionId(e.target.value)}
+              >
+                {sectionsForClass.length === 0 ? (
+                  <option value="">No sections available</option>
+                ) : (
+                  sectionsForClass.map((s) => (
+                    <option key={s._id} value={s._id}>
+                      Sec {s.name} ({s.capacity} max)
+                    </option>
+                  ))
+                )}
+              </select>
+            </div>
+          </div>
+
+          <div className="border-t border-slate-100 pt-3 space-y-3">
+            <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+              Guardian Details
+            </h4>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="label">Guardian Name *</label>
+                <input
+                  required
+                  placeholder="Parent / Guardian name"
+                  className="input"
+                  value={guardianName}
+                  onChange={(e) => setGuardianName(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="label">Relation</label>
+                <select
+                  className="input"
+                  value={guardianRelation}
+                  onChange={(e) => setGuardianRelation(e.target.value)}
+                >
+                  <option value="father">Father</option>
+                  <option value="mother">Mother</option>
+                  <option value="guardian">Guardian</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+
+              <div className="col-span-2">
+                <label className="label">Primary Phone (For SMS & Portal Login) *</label>
+                <input
+                  required
+                  placeholder="e.g. +92 300 1234567"
+                  className="input"
+                  value={guardianPhone}
+                  onChange={(e) => setGuardianPhone(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 pt-1">
+            <input
+              type="checkbox"
+              id="createParent"
+              checked={createParentLogin}
+              onChange={(e) => setCreateParentLogin(e.target.checked)}
+              className="rounded text-brand-600"
+            />
+            <label htmlFor="createParent" className="text-xs font-semibold text-slate-700">
+              Create Parent Portal Login Account (Password: Parent@123)
+            </label>
+          </div>
+
+          <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="btn-primary"
+            >
+              {isSubmitting ? "Processing…" : "Admit Student"}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
+
+// ─── Edit Student Modal ───────────────────────────────────────────────────────
+
+function EditStudentModal({ student, onClose, onSuccess }) {
+  const [name, setName] = useState(student.name);
+  const [gender, setGender] = useState(student.gender || "male");
+  const [address, setAddress] = useState(student.address || "");
+  const [bloodGroup, setBloodGroup] = useState(student.bloodGroup || "");
+  const [emergencyPhone, setEmergencyPhone] = useState(student.emergencyPhone || "");
+  const [status, setStatus] = useState(student.status || "active");
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError("");
+
+    try {
+      await updateStudentAPI(student._id, {
+        name,
+        gender,
+        address,
+        bloodGroup,
+        emergencyPhone,
+        status,
+      });
+      onSuccess();
+    } catch (err) {
+      setError(err.message || "Failed to update student");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm animate-fade-in">
+      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+        <h3 className="text-base font-bold text-slate-900">Edit Student Record</h3>
+        <p className="text-xs text-slate-500">{student.admissionNo}</p>
+
+        {error && (
+          <div className="mt-3 flex items-center gap-2 rounded-xl bg-rose-50 p-3 text-xs text-rose-700">
+            <AlertCircle className="h-4 w-4 shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="mt-4 space-y-3.5">
+          <div>
+            <label className="label">Full Name</label>
+            <input required className="input" value={name} onChange={(e) => setName(e.target.value)} />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="label">Gender</label>
+              <select className="input" value={gender} onChange={(e) => setGender(e.target.value)}>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="label">Status</label>
+              <select className="input" value={status} onChange={(e) => setStatus(e.target.value)}>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+                <option value="graduated">Graduated</option>
+                <option value="withdrawn">Withdrawn</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="label">Emergency Phone</label>
+            <input className="input" value={emergencyPhone} onChange={(e) => setEmergencyPhone(e.target.value)} />
+          </div>
+
+          <div>
+            <label className="label">Residential Address</label>
+            <textarea rows={2} className="input" value={address} onChange={(e) => setAddress(e.target.value)} />
+          </div>
+
+          <div className="flex items-center justify-end gap-2.5 pt-3">
+            <button type="button" onClick={onClose} className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50">Cancel</button>
+            <button type="submit" disabled={isSubmitting} className="btn-primary">{isSubmitting ? "Saving…" : "Save Changes"}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// ─── Promote Modal ────────────────────────────────────────────────────────────
+
+function PromoteModal({ studentIds, classes, academicYears, onClose, onSuccess }) {
+  const [targetAcademicYearId, setTargetAcademicYearId] = useState(academicYears[0]?._id || "");
+  const [targetClassId, setTargetClassId] = useState(classes[0]?._id || "");
+  const [targetSectionId, setTargetSectionId] = useState(classes[0]?.sections?.[0]?._id || "");
+  const [outcome, setOutcome] = useState("promoted");
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
+  const activeClass = classes.find((c) => c._id === targetClassId);
+  const sections = activeClass?.sections || [];
+
+  const handleClassChange = (newCId) => {
+    setTargetClassId(newCId);
+    const cls = classes.find((c) => c._id === newCId);
+    if (cls?.sections?.length) {
+      setTargetSectionId(cls.sections[0]._id);
+    } else {
+      setTargetSectionId("");
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError("");
+
+    try {
+      const res = await promoteStudentsAPI({
+        studentIds,
+        targetAcademicYearId,
+        targetClassId,
+        targetSectionId,
+        outcome,
+      });
+      onSuccess(res?.data?.message || `Promoted ${studentIds.length} students`);
+    } catch (err) {
+      setError(err.message || "Failed to process promotion");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm animate-fade-in">
+      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+        <h3 className="text-base font-bold text-slate-900">Promote / Repeat Students</h3>
+        <p className="text-xs text-slate-500">
+          Enrolls {studentIds.length} selected student(s) into a new academic session
+        </p>
+
+        {error && (
+          <div className="mt-3 flex items-center gap-2 rounded-xl bg-rose-50 p-3 text-xs text-rose-700">
+            <AlertCircle className="h-4 w-4 shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="mt-4 space-y-3.5">
+          <div>
+            <label className="label">Target Academic Year *</label>
+            <select
+              className="input"
+              value={targetAcademicYearId}
+              onChange={(e) => setTargetAcademicYearId(e.target.value)}
+            >
+              {academicYears.map((y) => (
+                <option key={y._id} value={y._id}>
+                  {y.name} {y.isCurrent ? "(Current)" : ""}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="label">Target Class *</label>
+              <select
+                className="input"
+                value={targetClassId}
+                onChange={(e) => handleClassChange(e.target.value)}
+              >
+                {classes.map((c) => (
+                  <option key={c._id} value={c._id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="label">Target Section *</label>
+              <select
+                className="input"
+                value={targetSectionId}
+                onChange={(e) => setTargetSectionId(e.target.value)}
+              >
+                {sections.map((s) => (
+                  <option key={s._id} value={s._id}>
+                    Sec {s.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="label">Outcome Status</label>
+            <select className="input" value={outcome} onChange={(e) => setOutcome(e.target.value)}>
+              <option value="promoted">Promoted (Advanced to next grade)</option>
+              <option value="repeated">Repeated (Same grade)</option>
+            </select>
+          </div>
+
+          <div className="flex items-center justify-end gap-2.5 pt-3">
+            <button type="button" onClick={onClose} className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50">Cancel</button>
+            <button type="submit" disabled={isSubmitting} className="btn-primary">{isSubmitting ? "Promoting…" : "Confirm Promotion"}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// ─── Profile Modal ────────────────────────────────────────────────────────────
 
 export function StudentProfileModal({ student, onClose }) {
-  if (!student) return null;
+  const [profileData, setProfileData] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handlePrint = () => {
-    window.print();
-  };
+  useEffect(() => {
+    if (student?._id) {
+      setIsLoading(true);
+      getStudentByIdAPI(student._id)
+        .then((res) => setProfileData(res?.data))
+        .catch(() => setProfileData(student))
+        .finally(() => setIsLoading(false));
+    }
+  }, [student]);
+
+  if (!student) return null;
+  const s = profileData || student;
 
   return (
     <Modal
       open={!!student}
       onClose={onClose}
       title="Student Profile & ID Card"
-      subtitle={`${student.class} · Section ${student.section}`}
+      subtitle={`${s.className || "Class"} · Section ${s.sectionName || "A"}`}
       size="lg"
       footer={
         <div className="flex w-full items-center justify-between">
-          <button className="btn-secondary" onClick={handlePrint} title="Print ID Card">
+          <button className="btn-secondary" onClick={() => window.print()} title="Print ID Card">
             <Printer className="h-4 w-4" /> Print ID Card
           </button>
-          <button className="btn-primary" onClick={onClose}>
-            Close
-          </button>
+          <button className="btn-primary" onClick={onClose}>Close</button>
         </div>
       }
     >
-      <div id="printable-id-card" className="space-y-4 print-area bg-white p-4 rounded-2xl">
-        {/* ID Card Header */}
+      <div id="printable-id-card" className="space-y-4 print-area bg-white p-2">
         <div className="flex items-center gap-4 rounded-2xl bg-gradient-to-br from-brand-50 to-slate-50 p-5 ring-1 ring-brand-100">
-          <Avatar name={student.name} size="lg" />
+          <Avatar name={s.name} size="lg" />
           <div className="flex-1">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-slate-900">{student.name}</h3>
+              <h3 className="text-lg font-bold text-slate-900">{s.name}</h3>
               <span className="badge bg-brand-100 text-brand-700 font-mono text-xs">
-                Roll #{student.rollNo}
+                {s.admissionNo}
               </span>
             </div>
-            <p className="text-sm font-medium text-slate-600">{student.class} · Section {student.section} · {student.gender}</p>
-            <p className="mt-1 text-xs text-slate-500">Admitted on {student.admissionDate}</p>
+            <p className="text-sm font-medium text-slate-600">
+              {s.className} · Section {s.sectionName} · Roll #{s.rollNo}
+            </p>
+            <p className="mt-1 text-xs text-slate-500">
+              Gender: <span className="capitalize">{s.gender}</span> · Blood Group: {s.bloodGroup || "—"}
+            </p>
           </div>
         </div>
 
-        {/* Student Details Grid */}
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <InfoRow label="Parent / Guardian" value={student.parentName} />
-          <InfoRow label="Emergency Phone" value={student.phone} icon={<Phone className="h-4 w-4" />} />
-          <InfoRow label="Official Email" value={student.email || "—"} />
-          <InfoRow label="Blood Group" value={student.bloodGroup || "—"} />
-          <InfoRow label="Residential Address" value={student.address || "—"} full />
-          <InfoRow label="Enrollment Status" value={<StatusBadge status={student.status} />} />
-          <InfoRow
-            label="Fee Status"
-            value={
-              <span
-                className={`badge ${
-                  student.feeStatus === "Paid"
-                    ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
-                    : student.feeStatus === "Overdue"
-                    ? "bg-rose-50 text-rose-700 ring-1 ring-rose-200"
-                    : "bg-amber-50 text-amber-700 ring-1 ring-amber-200"
-                }`}
-              >
-                {student.feeStatus || "Pending"}
-              </span>
-            }
-          />
+          <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-3">
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Parent / Guardian</p>
+            <p className="mt-1 text-sm font-semibold text-slate-800">{s.parentName}</p>
+          </div>
+          <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-3">
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Emergency Phone</p>
+            <p className="mt-1 flex items-center gap-1.5 text-sm font-semibold text-slate-800">
+              <Phone className="h-3.5 w-3.5 text-slate-400" />
+              {s.parentPhone || s.emergencyPhone || "—"}
+            </p>
+          </div>
+          <div className="col-span-2 rounded-xl border border-slate-100 bg-slate-50/50 p-3">
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Residential Address</p>
+            <p className="mt-1 text-sm font-medium text-slate-700">{s.address || "—"}</p>
+          </div>
         </div>
+
+        {/* Academic History */}
+        {s.enrollmentHistory && s.enrollmentHistory.length > 0 && (
+          <div className="border-t border-slate-100 pt-3">
+            <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+              Enrollment & Promotion History
+            </h4>
+            <div className="space-y-1.5">
+              {s.enrollmentHistory.map((h, i) => (
+                <div key={i} className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 text-xs">
+                  <span className="font-semibold text-slate-800">{h.academicYearId?.name || "Session"}</span>
+                  <span className="text-slate-600">{h.classId?.name} - Sec {h.sectionId?.name}</span>
+                  <span className="capitalize font-medium text-brand-700 bg-brand-50 px-2 py-0.5 rounded">
+                    {h.outcome}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </Modal>
-  );
-}
-
-function InfoRow({ label, value, icon, full = false }) {
-  return (
-    <div className={`rounded-xl border border-slate-100 bg-slate-50/50 p-3 ${full ? "sm:col-span-2" : ""}`}>
-      <p className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</p>
-      <div className="mt-1 flex items-center gap-2 text-sm font-semibold text-slate-800">
-        {icon}
-        <span>{value}</span>
-      </div>
-    </div>
   );
 }

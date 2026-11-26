@@ -59,7 +59,9 @@ router.post("/", async (req, res) => {
     // Check if roll number already exists
     const existing = await Student.findOne({ rollNo: Number(rollNo) });
     if (existing) {
-      return res.status(400).json({ message: `Roll number ${rollNo} already belongs to ${existing.name}` });
+      return res
+        .status(400)
+        .json({ message: `Roll number ${rollNo} already belongs to ${existing.name}` });
     }
 
     const newStudent = new Student(req.body);
@@ -108,7 +110,9 @@ router.post("/seed", async (req, res) => {
   try {
     const count = await Student.countDocuments();
     if (count > 0 && !req.query.force) {
-      return res.json({ message: `Database already has ${count} students. Pass ?force=true to re-seed.` });
+      return res.json({
+        message: `Database already has ${count} students. Pass ?force=true to re-seed.`,
+      });
     }
 
     if (req.query.force) {
@@ -122,11 +126,13 @@ router.post("/seed", async (req, res) => {
     }
 
     const inserted = await Student.insertMany(initialList);
-    res.status(201).json({ message: `Successfully seeded ${inserted.length} students!`, count: inserted.length });
+    res.status(201).json({
+      message: `Successfully seeded ${inserted.length} students!`,
+      count: inserted.length,
+    });
   } catch (error) {
     res.status(500).json({ message: "Error seeding data", error: error.message });
   }
 });
 
 export default router;
-

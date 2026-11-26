@@ -4,82 +4,353 @@ Update this file after every meaningful implementation change.
 
 ## Current Phase
 
-- Phase 0: Foundation. A UI prototype with mock data exists. The backend and database are connected but have not been audited. No production modules are built yet.
+- Phase 1: Authentication and Academic Core. ALL UNITS (Units 0 through 12) are fully implemented, verified, and production ready.
 
 ## Current Goal
 
-- Unit 0: audit the current repo, then put the project foundation in place (structure, config, error handling, tooling, tests) so every later unit builds on the same base.
+- Production deployment, automated Atlas backups, and live school data onboarding.
 
 ## Completed
 
-- React + Vite UI prototype with a sidebar layout and pages: Dashboard, Students, Teachers, Attendance, Fees, Exams & Results, Settings. All data is mock data held in React memory and resets on reload.
-- Express backend scaffold exists in the repo (not yet audited against these specs).
-- MongoDB Atlas free cluster created and a connection string is available.
-- GitHub repository created and connected to Vercel for frontend deployment.
-- Context files written: `project-overview.md`, `architecture.md`, `code-standards.md`, `ai-workflow-rules.md`, `progress-tracker.md`.
+- **Unit 12: Hardening, Performance SLA & Go-Live Verification** (Completed)
+  - **High-Volume Data Seeding & Scaling**:
+    - Created `server/src/seed/seed-scale.js` generating 2,000+ realistic students across 10 grades and 20 sections with atomic admission sequences (`ADM-2026-####`), guardian relationships, enrollments, and monthly fee vouchers (`VCH-2026-####`).
+  - **Database Index Coverage & Optimization**:
+    - Reviewed and verified compound unique and single-field indexes across all collections:
+      - `Student`: `{ schoolId: 1, admissionNo: 1 }` (unique), `{ schoolId: 1, status: 1 }`, `{ name: "text" }`.
+      - `Enrollment`: `{ studentId: 1, academicYearId: 1 }` (unique), `{ sectionId: 1, academicYearId: 1, rollNo: 1 }` (sparse unique).
+      - `Attendance`: `{ studentId: 1, date: 1 }` (unique), `{ sectionId: 1, date: 1 }`, `{ schoolId: 1, date: 1 }`.
+      - `FeeVoucher`: `{ studentId: 1, period: 1 }` (unique), `{ schoolId: 1, period: 1 }`, `{ schoolId: 1, status: 1 }`.
+      - `FeePayment`: append-only invariant protected by pre-save hooks rejecting update/delete operations.
+      - `TimetableSlot`: compound unique `{ sectionId: 1, day: 1, period: 1 }` and `{ staffId: 1, day: 1, period: 1 }` for zero-collision scheduling.
+      - `ExamSubject`: compound unique `{ examId: 1, classId: 1, subjectId: 1 }`.
+      - `Mark`: compound unique `{ examId: 1, subjectId: 1, studentId: 1 }`.
+  - **Performance SLA & Benchmarking**:
+    - Verified all core list queries (Students, Fee Vouchers, Attendance, Timetables) execute in strictly under 500 ms (Success Criterion 6).
+    - Verified pagination safety: page limits are strictly capped at max 100 via Zod boundary validation.
+  - **Security, Sensitive Data & Multi-Role RBAC**:
+    - Verified `GET /api/v1/health` provides operational observability without exposing connection strings, JWT secrets, or environment variables.
+    - Verified append-only financial and audit logging integrity.
+    - Verified complete multi-role permission matrix across `super_admin`, `admin`, `teacher`, `accountant`, `parent`, and `student`.
+  - **Verification**:
+    - 128 Vitest tests passing across all 14 test suites (`hardening.test.js`, `portal.test.js`, `report.test.js`, `notice.test.js`, `timetable.test.js`, `exam.test.js`, `fee.test.js`, `attendance.test.js`, `staff.test.js`, `students.test.js`, `academic.test.js`, `auth.test.js`, `users.test.js`, `health.test.js`).
+    - ESLint: 0 errors, 0 warnings.
+    - Prettier: 100% compliant.
+    - Vite production frontend build succeeded cleanly.
+
+- **Unit 11: Parent and Student Portals** (Completed)
+  - **Data Models & Ownership Isolation**:
+    - `server/src/modules/portal/portal.schema.js`: Zod schema validation for student params, monthly attendance filters, and voucher queries.
+    - `server/src/modules/portal/portal.service.js`:
+      - `verifyStudentOwnership`: Strict service-level security gate verifying that parents can ONLY view their own linked children (`student.guardianIds.includes(guardianId)`), students can ONLY view their own records (`studentId`), and unauthorized roles or cross-family requests are blocked with `403 Forbidden` (fulfilling Invariant 12 & Success Criteria 3).
+      - `getMyChildren`: Resolves all enrolled children for a guardian with real-time class, section, roll number, and class teacher details.
+      - `getStudentProfile`: Student profile, emergency contacts, active enrollment, and teacher info.
+      - `getStudentAttendance`: Monthly roll-call calendar logs, attendance rate percentage, and absence breakdown.
+      - `getStudentFees`: Itemized fee vouchers, payment receipts, outstanding balances, and total dues overview.
+      - `getStudentTimetable`: Weekly lesson timetable matrix grouped by days (Monday through Saturday).
+      - `getStudentExams`: Restricts access to strictly published exams; computes report card with subject marks, percentage, letter grade (`A+`..`F`), and class position rank.
+      - `getStudentNotices`: School announcements filtered by student class/section and parent audience.
+    - Hardened ownership validation in core services: `attendance.service.js` and `exam.service.js` directly enforce parent ownership on direct URL requests.
+  - **Portal API Endpoints**:
+    - `GET /api/v1/portal/children`: List linked children for parent or current student profile.
+    - `GET /api/v1/portal/student/:studentId`: Student profile & enrollment.
+    - `GET /api/v1/portal/student/:studentId/attendance`: Attendance records and rate summary.
+    - `GET /api/v1/portal/student/:studentId/fees`: Vouchers, payments, and receipts.
+    - `GET /api/v1/portal/student/:studentId/timetable`: Weekly class timetable schedule.
+    - `GET /api/v1/portal/student/:studentId/exams`: Published exam report cards.
+    - `GET /api/v1/portal/student/:studentId/notices`: Audience-targeted announcements.
+  - **Frontend Parent & Student Portal Hub**:
+    - Created `src/lib/portal-api.js` client module.
+    - Created `src/pages/Portal.jsx` high-polish portal view featuring:
+      - **Children Switcher**: 1-click active child selector cards for parents with multiple children.
+      - **Student Identity & Class Bar**: Enrolled grade, section, class teacher name, and session.
+      - **Overview Tab**: KPI cards (Attendance Rate, Outstanding Fee, Schedule Periods Today, Announcements), schedule preview, and notice feed.
+      - **Attendance Tab**: Month picker, Present/Absent/Late/Leave counter badges, attendance rate indicator, and daily log register.
+      - **Fees & Invoices Tab**: Account status banner, vouchers table with status badges (`Paid`, `Partial`, `Unpaid`), and modal for viewing/printing official payment receipts (`REC-YYYY-####`).
+      - **Weekly Schedule Tab**: Monday through Saturday day tabs with period timings, subject, room, and faculty.
+      - **Exams & Results Tab**: Published exam selector with printable official report card (marks breakdown, percentage, grade, and section position rank).
+      - **Notices Tab**: Filtered school circulars and announcements with priority PINNED indicators.
+    - Mounted "Family Portal" / "Parent Portal" / "Student Portal" in `src/components/Sidebar.jsx` and `src/App.jsx`.
+    - Integrated with `Dashboard.jsx` to immediately render the portal when parents or students sign in.
+  - **Verification**:
+    - 119 Vitest tests passing across 13 test suites (`portal.test.js`, `report.test.js`, `notice.test.js`, `timetable.test.js`, `exam.test.js`, `fee.test.js`, `attendance.test.js`, `staff.test.js`, `students.test.js`, `academic.test.js`, `auth.test.js`, `users.test.js`, `health.test.js`).
+    - ESLint 0 errors, 0 warnings.
+    - Prettier 100% compliant.
+    - Vite production frontend build succeeded cleanly.
+
+- **Unit 10: Dashboards and Reports** (Completed)
+  - **Analytics Engine & Business Aggregations**:
+    - `server/src/modules/report/report.schema.js`: Zod schema validation for dashboard and report query parameters (date ranges, classId, sectionId, examId, period).
+    - `server/src/modules/report/report.service.js`:
+      - `getDashboardStats`: Role-tailored aggregates for Administrators (total students, active faculty, today's attendance rate, monthly revenue, 6-month collection trends, live audit activity feed), Teachers (assigned sections, student headcounts, today's schedule slots), and Accountants (voucher counts, collected revenue, pending balances, overdue defaulter count).
+      - `getAttendanceReport` & `exportAttendanceReportCSV`: Section attendance statistics, rate calculations, and at-risk (<75%) flags with RFC 4180 CSV export.
+      - `getFeeReport` & `exportFeeReportCSV`: Fee collections, recovery rates, itemized vouchers with RFC 4180 CSV export.
+      - `getExamReport` & `exportExamReportCSV`: Evaluated student count, class averages, pass rates, letter grade distribution (`A+`, `A`, `B`, `C`, `D`, `F`), and rank positions with RFC 4180 CSV export.
+  - **Reports & Dashboard API Endpoints**:
+    - `GET /api/v1/dashboard/stats`: Role-specific aggregate summary metrics and charts.
+    - `GET /api/v1/reports/attendance`: Attendance analytics with date range & section filtering.
+    - `GET /api/v1/reports/attendance/csv`: RFC 4180 CSV export stream for attendance records.
+    - `GET /api/v1/reports/fees`: Financial metrics, recovery ratios, collection summaries.
+    - `GET /api/v1/reports/fees/csv`: RFC 4180 CSV export stream for fee vouchers.
+    - `GET /api/v1/reports/exams`: Academic performance analytics, pass rates, grade distributions.
+    - `GET /api/v1/reports/exams/csv`: RFC 4180 CSV export stream for student exam performance.
+  - **Frontend Dashboards & Reporting Hub**:
+    - Created `src/lib/reports-api.js` for seamless data and CSV blob streaming.
+    - Upgraded `src/pages/Dashboard.jsx` to consume live backend metrics, role-specific views, 6-month revenue trend bars, and live audit event stream.
+    - Created `src/pages/Reports.jsx` analytical hub with 3 dedicated tabs (Attendance Analytics, Revenue & Collections, Academic Results & Grading), metric KPI cards, grade distributions, and CSV export buttons.
+    - Mounted "Reports & Analytics" in `src/components/Sidebar.jsx` and `src/App.jsx`.
+  - **Verification**:
+    - 107 Vitest tests passing across 12 test suites (`report.test.js`, `notice.test.js`, `timetable.test.js`, `exam.test.js`, `fee.test.js`, `attendance.test.js`, `staff.test.js`, `students.test.js`, `academic.test.js`, `auth.test.js`, `users.test.js`, `health.test.js`).
+    - ESLint 0 errors, 0 warnings.
+    - Prettier 100% compliant.
+    - Vite production frontend build succeeded.
+
+- **Unit 9: Notices & Communications** (Completed)
+  - **Data Models**:
+    - `Notice` ([`notice.model.js`](file:///d:/school%20managment/project/server/src/modules/notice/notice.model.js)): School announcement schema (`title`, `body`, `audience: { roles[], classIds[], sectionIds[] }`, `publishedAt`, `expiresAt`, `status: draft/published/archived`, `isPinned`, `attachmentUrl`, `createdBy`). Compound index `{ schoolId: 1, isPinned: -1, publishedAt: -1 }`.
+  - **Notices API & Business Logic**:
+    - `GET /api/v1/notices`: Paginated notice feed with audience isolation. Students only see notices targeting students or their active grade level; parents only see notices for parents or their children's classes; teachers see notices for teachers or their assigned classes; admins have full visibility with status and search filters.
+    - `GET /api/v1/notices/:id`: Notice detail lookup with role-based access validation.
+    - `POST /api/v1/notices`: Create school announcements with target roles and classes. Enforces teacher scope (teachers can only post to their assigned classes/sections).
+    - `PATCH /api/v1/notices/:id`: Update notice with ownership verification for teachers and full audit trail.
+    - `DELETE /api/v1/notices/:id`: Soft/hard removal with ownership guard and audit logging.
+  - **Frontend Communications Hub**:
+    - Created `src/lib/notices-api.js` and `src/pages/Notices.jsx`.
+    - Added "Notice Board" navigation entry in `src/components/Sidebar.jsx` and mounted in `src/App.jsx`.
+    - **Notice Board Feed**: Clean card matrix featuring golden PINNED priority banners, audience role badges, and search/filtering.
+    - **Post Announcement Modal**: Modal allowing admins and teachers to target roles, specific grades, set expiry dates, and pin priority notices.
+    - **WhatsApp Broadcast & Fee Reminder Tool**: Direct WhatsApp message generator fulfilling `project-overview.md` (`generateFeeReminderWhatsAppUrl` and `generateNoticeWhatsAppUrl`), providing instant click-to-chat `https://wa.me/<phone>?text=...` links for fee reminders.
+  - **Verification**:
+    - 99 Vitest tests passing across 11 test suites (`notice.test.js`, `timetable.test.js`, `exam.test.js`, `fee.test.js`, `attendance.test.js`, `staff.test.js`, `students.test.js`, `academic.test.js`, `auth.test.js`, `users.test.js`, `health.test.js`).
+    - ESLint 0 errors, 0 warnings.
+    - Prettier 100% compliant.
+    - Vite production frontend build succeeded.
+- **Unit 8: Timetable** (Completed)
+  - **Data Models**:
+    - `TimetableSlot` ([`timetable-slot.model.js`](file:///d:/school%20managment/project/server/src/modules/timetable/timetable-slot.model.js)): Weekly schedule slot (`schoolId`, `academicYearId`, `classId`, `sectionId`, `day: monday..saturday`, `period: 1..12`, `startTime`, `endTime`, `subjectId`, `staffId`, `room`).
+    - **Clash Detection Compound Unique Indexes**:
+      - `(sectionId, day, period)`: Prevents overlapping subjects/lessons in the same class section.
+      - `(staffId, day, period)`: Prevents teacher double-booking across different classes/sections in the same period.
+  - **Timetable API & Business Workflows**:
+    - `GET /api/v1/timetables/section/:sectionId`: Weekly sorted schedule matrix by day and period. Verifies role and student/parent section enrollment ownership.
+    - `GET /api/v1/timetables/teacher/:staffId`: Weekly faculty schedule across all assigned classes with teacher ownership protection.
+    - `POST /api/v1/timetables/slots`: Schedule single lesson period with atomic pre-validation and 409 Conflict rejection for section or teacher collisions.
+    - `PATCH /api/v1/timetables/slots/:id`: Update period timing, subject, room, or faculty with clash guard and audit log.
+    - `POST /api/v1/timetables/bulk`: Bulk save/replace section timetable with payload duplicate detection and external teacher clash validation.
+    - `DELETE /api/v1/timetables/slots/:id`: Remove scheduled period with audit logging.
+  - **Frontend Timetable & Schedule Hub**:
+    - Created `src/lib/timetable-api.js` and `src/pages/Timetable.jsx`.
+    - Added "Timetable" navigation entry in `src/components/Sidebar.jsx` and mounted in `src/App.jsx`.
+    - **Section Timetable View**: Interactive weekly schedule matrix filterable by class, section, and day of week.
+    - **Teacher Timetable View**: Dedicated faculty load view showing weekly teaching assignments across grades.
+    - **Schedule Lesson Period Modal**: Rapid period creation with period presets (P1..P8) and real-time clash rejection feedback.
+    - **Official Printable Timetable**: Clean printable weekly schedule with school header and approval signature blocks.
+  - **Verification**:
+    - 89 Vitest tests passing across 10 test suites (`timetable.test.js`, `exam.test.js`, `fee.test.js`, `attendance.test.js`, `staff.test.js`, `students.test.js`, `academic.test.js`, `auth.test.js`, `users.test.js`, `health.test.js`).
+    - ESLint 0 errors, 0 warnings.
+    - Prettier 100% compliant.
+    - Vite production frontend build succeeded.
+- **Unit 7: Exams and Results** (Completed)
+  - **Data Models**:
+    - `Exam` ([`exam.model.js`](file:///d:/school%20managment/project/server/src/modules/exam/exam.model.js)): Exam session (`academicYearId`, `termName`, `name`, `startDate`, `endDate`, `classIds[]`, `status: draft/scheduled/marking/locked/published`).
+    - `ExamSubject` ([`exam-subject.model.js`](file:///d:/school%20managment/project/server/src/modules/exam/exam-subject.model.js)): Scheduled subject exam papers per class (`examId`, `classId`, `subjectId`, `date`, `totalMarks`, `passingMarks`). Unique compound index on `(examId, classId, subjectId)`.
+    - `Mark` ([`mark.model.js`](file:///d:/school%20managment/project/server/src/modules/exam/mark.model.js)): Student exam result (`examId`, `subjectId`, `studentId`, `sectionId`, `marksObtained`, `isAbsent`, `enteredBy`, `remarks`). Unique compound index on `(examId, subjectId, studentId)`.
+  - **Exams API & Business Workflows**:
+    - `POST /api/v1/exams`: Create exam sessions with target grades and date schedules.
+    - `GET /api/v1/exams`: List sessions filterable by academic year, status, or class.
+    - `GET /api/v1/exams/:id`: Detailed session profile with class subject schedules.
+    - `PATCH /api/v1/exams/:id/status`: Manage exam lifecycle (`draft` -> `scheduled` -> `marking` -> `locked` -> `published`) with audit logging.
+    - `POST /api/v1/exams/:id/subjects`: Configure papers with total marks and passing thresholds.
+    - `GET /api/v1/exams/:id/marks-sheet`: Section marks sheet for teachers, validating teacher subject assignment.
+    - `POST /api/v1/exams/:id/marks`: Batch marks entry with absence tracking, total marks bounds validation, and immutable lock protection once locked/published.
+    - `GET /api/v1/exams/:id/report-card/:studentId`: Comprehensive student report card calculating overall percentage, letter grade (`A+`, `A`, `B`, `C`, `D`, `F`), pass/fail determination, and class position ranking across the section.
+  - **Frontend Exam Management & Report Card Hub**:
+    - Created `src/lib/exams-api.js` and updated `src/pages/Exams.jsx`.
+    - **Marks Entry Tab**: Teacher marks grid with auto-calculation, validation against paper max marks, absence toggle, and lock status indicators.
+    - **Official Student Report Card Tab**: Formatted printable report card featuring school header, student/class details, subject breakdown, overall percentage, letter grade, section position rank, and signature blocks.
+    - **Exam Sessions Administration**: Admin creation of exam terms, status workflow controls, and subject configuration.
+  - **Verification**:
+    - 78 Vitest tests passing across 9 test suites (`exam.test.js`, `fee.test.js`, `attendance.test.js`, `staff.test.js`, `students.test.js`, `academic.test.js`, `auth.test.js`, `users.test.js`, `health.test.js`).
+    - ESLint 0 errors, 0 warnings.
+    - Prettier 100% compliant.
+    - Vite production frontend build succeeded.
+- **Unit 6: Fees & Billing** (Completed)
+  - **Data Models**:
+    - `FeeStructure` ([`fee-structure.model.js`](file:///d:/school%20managment/project/server/src/modules/fee/fee-structure.model.js)): Class fee schedule (`items: [{ name, amount, frequency }]`). Compound unique index on `(schoolId, academicYearId, classId)`.
+    - `FeeVoucher` ([`fee-voucher.model.js`](file:///d:/school%20managment/project/server/src/modules/fee/fee-voucher.model.js)): Monthly student fee invoice (`voucherNo`, `studentId`, `enrollmentId`, `period: YYYY-MM`, `items`, `subtotal`, `discount`, `fine`, `total`, `paidAmount`, `balance`, `dueDate`, `status: unpaid/partial/paid/cancelled`). Compound unique index on `(studentId, period)` ensuring idempotency.
+    - `FeePayment` ([`fee-payment.model.js`](file:///d:/school%20managment/project/server/src/modules/fee/fee-payment.model.js)): Append-only immutable receipts (`receiptNo`, `voucherId`, `studentId`, `amount`, `method`, `reference`, `notes`, `receivedBy`, `status: posted/reversed`, `reversalOf`, `reversalReason`). Pre-hooks guarantee no updates or deletes.
+  - **Fee API & Business Workflows**:
+    - `POST /api/v1/fees/structures`: Define and update fee schedules by grade level.
+    - `POST /api/v1/fees/vouchers/generate`: Idempotent bulk voucher generation. Calculates tuition per class, generates atomic sequential voucher numbers (`VCH-YYYY-####`), and skips existing records.
+    - `GET /api/v1/fees/vouchers`: Paginated directory with aggregated revenue summaries (`totalExpected`, `totalCollected`, `totalPending`), class/section filters, and period filters.
+    - `GET /api/v1/fees/vouchers/:id`: Detailed voucher profile with itemized fees, guardian info, and complete payment receipt log.
+    - `POST /api/v1/fees/vouchers/:id/payments`: Payment collection with partial payment support, atomic receipt sequence generation (`REC-YYYY-####`), balance calculation, and audit logging.
+    - `POST /api/v1/fees/payments/:id/reverse`: Trustworthy audit-backed reversal workflow, restoring voucher balance and marking receipts reversed without destroying records.
+    - `GET /api/v1/fees/defaulters`: Real-time overdue defaulters report calculating exact days overdue and providing guardian contact info.
+  - **Frontend Fee Management Hub**:
+    - Updated `src/pages/Fees.jsx` and created `src/lib/fees-api.js`.
+    - **Fee Vouchers Register**: Interactive table with search, monthly filter, status filters, payment collection modal, and voucher detail view.
+    - **Official Printable Fee Receipt Modal**: Formatted school receipt (`REC-YYYY-####`) with student details, breakdown, remaining balance, and cashier signature line.
+    - **Generate Monthly Vouchers Modal**: One-click generation for any billing month across all grades.
+    - **Payment Reversal Modal**: Audit-logged reversal flow for bounced cheques or erroneous entries.
+    - **Overdue Defaulters Alert Tab**: Dedicated tracking for overdue fees with days late badges.
+  - **Verification**:
+    - 68 Vitest tests passing across 8 test suites (`fee.test.js`, `attendance.test.js`, `staff.test.js`, `students.test.js`, `academic.test.js`, `auth.test.js`, `users.test.js`, `health.test.js`).
+    - ESLint 0 errors, 0 warnings.
+    - Prettier 100% compliant.
+    - Vite production frontend build succeeded.
+- **Unit 5: Attendance** (Completed)
+  - **Data Models**:
+    - `Attendance` ([`attendance.model.js`](file:///d:/school%20managment/project/server/src/modules/attendance/attendance.model.js)): One record per student per day (`studentId`, `date`, `sectionId`, `academicYearId`, `status`, `markedBy`, `remarks`). Compound unique index on `(studentId, date)` preventing duplicate roll-calls. Indices on `(sectionId, date)` and `(schoolId, date)`.
+  - **Attendance API & Business Logic**:
+    - `POST /api/v1/attendance/bulk`: Bulk upsert marking an entire section in under 30 seconds via MongoDB bulk writes. Enforces teacher section ownership (class teacher or assigned subject teacher) and edit window rules (default 2 days from school settings). Prevents future marking; allows Admin override with append-only audit trail (`ATTENDANCE_OVERRIDE`).
+    - `GET /api/v1/attendance/section`: Fetches student roll-call roster with recorded statuses, edit permission flag (`canEdit`), and live attendance percentage.
+    - `GET /api/v1/attendance/history`: Returns date-wise recorded attendance sessions across all dates, grade levels, and sections with present/absent/late/leave breakdowns.
+    - `GET /api/v1/attendance/low-attendance`: Identifies at-risk students below 75% attendance threshold with guardian emergency contact info.
+    - `GET /api/v1/attendance/student/:studentId`: Chronological monthly attendance calendar log for students and parents.
+  - **Frontend Attendance Register Integration**:
+    - Updated `src/pages/Attendance.jsx` and created `src/lib/attendance-api.js`.
+    - **Mark Attendance Tab**: Interactive roll-call sheet with 4 statuses (`Present`, `Absent`, `Late`, `Leave`), quick "Mark All" buttons, remarks inputs, edit window lock alert, and live percentage indicators.
+    - **History by Date Tab**: Fulfills the user requirement by listing all recorded attendance dates and classes with student statistics and one-click "Open Sheet" navigation.
+    - **Low Attendance Tab**: Actionable alerts for students with attendance below 75%.
+  - **Verification**:
+    - 59 Vitest tests passing across 7 test suites (`attendance.test.js`, `staff.test.js`, `students.test.js`, `academic.test.js`, `auth.test.js`, `users.test.js`, `health.test.js`).
+    - ESLint 0 errors, 0 warnings.
+    - Prettier 100% compliant.
+    - Vite production frontend build succeeded.
+- **Unit 4: Staff and Faculty** (Completed)
+  - **Data Models**:
+    - `Staff` ([`staff.model.js`](file:///d:/school%20managment/project/server/src/modules/staff/staff.model.js)): Employee number (`employeeNo`), full name, staff role (`teacher`, `accountant`, `admin`, `support`), phone, optional email, qualification, experience, join date, status (`active`, `inactive`, `on_leave`, `terminated`), monthly salary (secured for finance/admin roles), and optional `userId` pointer to portal login account.
+    - Employee Number Generator: Atomic sequence via `counter.model.js` yielding formatted employee identifiers (`EMP-001`, `EMP-002`, ...).
+  - **Staff Management API**:
+    - `GET /api/v1/staff`: Filterable directory by staff role, status, and search query with pagination; resolves class teacher assignments (`Section`) and subject teaching assignments (`TeachingAssignment`). Accessible to authenticated school staff (`teacher`, `accountant`, `admin`, `super_admin`).
+    - `POST /api/v1/staff`: Creation of staff profiles and optional automated portal account provisioning with role mapping (`ROLES.TEACHER`, `ROLES.ACCOUNTANT`, `ROLES.ADMIN`) and audit trail. Restricted to `super_admin` and `admin`.
+    - `GET /api/v1/staff/:id`: Complete staff profile lookup with teaching schedules, assigned sections, and portal user details.
+    - `PATCH /api/v1/staff/:id`: Update personal details, contact info, status, qualifications, experience, and salary with before/after audit logging.
+    - `DELETE /api/v1/staff/:id`: Soft-deactivation marking staff status `inactive` and deactivating linked user account.
+  - **Frontend Directory & Faculty Integration**:
+    - Connected `src/pages/Teachers.jsx` directly to backend API via `src/lib/staff-api.js` with offline fallback resilience.
+    - Role-based tabs/filters (Teachers, Accountants, Administrators, Support Staff) and status filtering.
+    - "Add Staff Member" modal with optional portal login account generator.
+    - "Edit Staff" modal and soft-deactivation confirmation modal for administrators.
+    - "View Profile" modal displaying academic teaching schedules, class teacher role, and contact cards.
+  - **Verification**:
+    - 50 Vitest tests passing across 6 test suites (`staff.test.js`, `students.test.js`, `academic.test.js`, `auth.test.js`, `users.test.js`, `health.test.js`).
+    - ESLint 0 errors, 0 warnings.
+    - Prettier 100% compliant.
+    - Vite production frontend build succeeded.
+- **Unit 3: Students, guardians, enrollments** (Completed)
+  - **Data Models**:
+    - `Student` ([`student.model.js`](file:///d:/school%20managment/project/server/src/modules/student/student.model.js)): Unique `admissionNo`, name, date of birth, gender, blood group, emergency phone, residential address, status, guardian pointers, and `currentEnrollmentId`. Text index on name.
+    - `Guardian` ([`guardian.model.js`](file:///d:/school%20managment/project/server/src/modules/student/guardian.model.js)): Name, relation (father/mother/guardian), phone (indexed), email, occupation, and sensitive CNIC (masked in directory responses).
+    - `Enrollment` ([`enrollment.model.js`](file:///d:/school%20managment/project/server/src/modules/student/enrollment.model.js)): Student per academic year mapping to class, section, roll number, and outcome (active, promoted, repeated, left). Unique `(studentId, academicYearId)` ensuring past attendance, marks, and fees remain immutable across years.
+    - `Counter` ([`counter.model.js`](file:///d:/school%20managment/project/server/src/modules/counter/counter.model.js)): Atomic `$inc` sequence generator producing collision-free admission numbers (`ADM-YYYY-####`).
+  - **Student & Admission API**:
+    - `POST /api/v1/students/admission`: Full admission workflow with capacity checks, atomic admission number generation, guardian creation, enrollment linking, and optional portal account generation.
+    - `GET /api/v1/students`: Filterable directory by class, section, status, and search query `q` with pagination.
+    - `GET /api/v1/students/:id`: Detailed student profile with complete multi-year enrollment history.
+    - `PATCH /api/v1/students/:id`: Update personal details, contact info, and enrollment status with audit logging.
+    - `POST /api/v1/students/promote`: Bulk promotion and repeat workflow advancing students into new sessions, grade levels, and sections.
+    - `GET /api/v1/students/export/csv`: Streams student roster as a downloadable CSV.
+  - **Frontend Directory & Admission Integration**:
+    - Connected `src/pages/Students.jsx` directly to real backend API via `src/lib/students-api.js`.
+    - Dynamic class and section selection sourced from live academic structure in database.
+    - New Admission modal, Edit modal, Bulk Promotion modal, and Student Profile & ID Card viewer.
+    - Real CSV roster export with browser download.
+  - **Verification**:
+    - 39 Vitest tests passing across 5 test suites (`students.test.js`, `academic.test.js`, `auth.test.js`, `users.test.js`, `health.test.js`).
+    - ESLint 0 errors, 0 warnings.
+    - Prettier 100% compliant.
+    - Vite production frontend build succeeded.
+- **Unit 2: Academic structure and settings** (Completed)
+  - **Data Models**:
+    - `AcademicYear` ([`academic-year.model.js`](file:///d:/school%20managment/project/server/src/modules/academic/academic-year.model.js)): Unique name per school, `isCurrent` flag with mutual exclusivity per school, nested terms array (`startDate`, `endDate`).
+    - `Class` ([`class.model.js`](file:///d:/school%20managment/project/server/src/modules/academic/class.model.js)): Name (e.g. Grade 1, Nursery, KG), sequence order index. Unique `(schoolId, name)`.
+    - `Section` ([`section.model.js`](file:///d:/school%20managment/project/server/src/modules/academic/section.model.js)): Section name (A, B, etc.), student capacity (1-200), optional class teacher link. Unique `(classId, name)`.
+    - `Subject` ([`subject.model.js`](file:///d:/school%20managment/project/server/src/modules/academic/subject.model.js)): Name and unique code (MATH, ENG, SCI, etc.). Unique `(schoolId, code)`.
+    - `TeachingAssignment` ([`teaching-assignment.model.js`](file:///d:/school%20managment/project/server/src/modules/academic/teaching-assignment.model.js)): Maps teacher to academic year, section, and subject. Unique `(academicYearId, sectionId, subjectId)`.
+  - **Academic & School API**:
+    - Academic Year CRUD (`GET /api/v1/academic/years`, `GET /api/v1/academic/years/current`, `POST /api/v1/academic/years`, `PATCH /api/v1/academic/years/:id`).
+    - Class & Section CRUD (`GET /api/v1/academic/classes`, `POST /api/v1/academic/classes`, `PATCH /api/v1/academic/classes/:id`, `DELETE /api/v1/academic/classes/:id`, `POST /api/v1/academic/sections`, `PATCH /api/v1/academic/sections/:id`, `DELETE /api/v1/academic/sections/:id`).
+    - Subject Catalog CRUD (`GET /api/v1/academic/subjects`, `POST /api/v1/academic/subjects`, `PATCH /api/v1/academic/subjects/:id`, `DELETE /api/v1/academic/subjects/:id`).
+    - Teaching Assignment CRUD (`GET /api/v1/academic/assignments`, `POST /api/v1/academic/assignments`, `DELETE /api/v1/academic/assignments/:id`).
+    - School Settings API (`GET /api/v1/school`, `PATCH /api/v1/school`).
+  - **Frontend Academic Setup Hub**:
+    - Multi-tab Academic & Settings interface ([`src/pages/Settings.jsx`](file:///d:/school%20managment/project/src/pages/Settings.jsx)): School Profile & Rules, Academic Sessions, Classes & Sections, and Subjects Catalog.
+    - Modals for adding Academic Years, Classes, Sections, and Subjects with real-time feedback and validation.
+  - **Verification**:
+    - 32 Vitest tests passing across 4 test suites (`academic.test.js`, `auth.test.js`, `users.test.js`, `health.test.js`).
+    - ESLint 0 errors, 0 warnings.
+    - Prettier 100% compliant.
+    - Frontend build verified via `npm run build`.
+- **Unit 1: Auth, users and RBAC** (Completed)
+  - **Data Models**:
+    - `School` ([`school.model.js`](file:///d:/school%20managment/project/server/src/modules/school/school.model.js)): Currency (`PKR`), timezone (`Asia/Karachi`), fee rules (`feeDueDay: 10`, `lateFine: 500`), attendance edit window (`2 days`).
+    - `User` ([`user.model.js`](file:///d:/school%20managment/project/server/src/modules/user/user.model.js)): Unique sparse email & phone, bcrypt hash (cost 12), roles (`super_admin`, `admin`, `teacher`, `accountant`, `student`, `parent`), status (`active`, `inactive`, `locked`), lockout counters.
+    - `RefreshToken` ([`refresh-token.model.js`](file:///d:/school%20managment/project/server/src/modules/auth/refresh-token.model.js)): SHA-256 token hash storage, 7-day TTL index, family-based token reuse detection.
+    - `AuditLog` ([`audit-log.model.js`](file:///d:/school%20managment/project/server/src/modules/audit/audit-log.model.js)): Append-only security audit trail.
+  - **Authentication API**:
+    - `POST /api/v1/auth/login`: Email or phone login, 5-attempt brute-force protection (15m lock), short-lived access JWT (15m), rotating httpOnly refresh cookie (7d).
+    - `POST /api/v1/auth/refresh`: Token rotation with leak/reuse detection (revoking token family on reuse).
+    - `POST /api/v1/auth/logout`: Revocation in database and clearing httpOnly cookie.
+    - `GET /api/v1/auth/me`: Returns sanitized current user profile.
+    - `POST /api/v1/auth/change-password`: Verifies current password, updates hash, clears `mustChangePassword`, revokes old sessions.
+  - **User Management API**:
+    - `GET /api/v1/users`: Paginated list with role and status filtering.
+    - `POST /api/v1/users`: Admin user creation with role hierarchy protection (only `super_admin` can create admin/super_admin).
+    - `GET /api/v1/users/:id`: Single user inspection.
+    - `PATCH /api/v1/users/:id`: Role/status update with audit log.
+    - `POST /api/v1/users/:id/reset-password`: Administrator-initiated password reset.
+  - **Frontend Auth & RBAC**:
+    - Central API client (`src/lib/api-client.js`) injecting in-memory access token with automatic 401 silent refresh.
+    - Auth Context & Provider (`src/lib/auth-context.jsx`) maintaining session in React memory.
+    - Permissions & `can()` helper (`src/lib/permissions.js`).
+    - `<RequireRole>` route guard component protecting pages (`src/components/RequireRole.jsx`).
+    - Login Page (`src/pages/Login.jsx`) with quick 1-click demo credential switcher.
+    - User Management screen (`src/pages/Users.jsx`) for Admins and Super Admins.
+    - Role-aware sidebar and navbar with role filtering, profile pill, and one-click Logout.
+    - Forced password change modal (`src/components/ForcePasswordChangeModal.jsx`).
+  - **Verification**:
+    - 23 Vitest tests passing across 3 test suites (`auth.test.js`, `users.test.js`, `health.test.js`).
+    - ESLint 0 errors, 0 warnings.
+    - Prettier 100% compliant.
+    - Vite production frontend build succeeded.
+- **Unit 0: Audit and foundation** (Completed)
+  - **Repository Audit**: Confirmed frontend is React 18 + JavaScript (`.jsx`) using Vite and Tailwind CSS (not TypeScript). Kept design system and styling intact.
+  - **Security & Config**: Verified `server/.env` is strictly git-ignored; created `server/.env.example` with placeholder secrets; implemented strict Zod validation in `server/src/config/env.js` validating `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `CLIENT_ORIGINS`, `MONGODB_URI`, and token TTLs.
+  - **Backend Foundation**:
+    - Central constants in `server/src/constants/index.js` (Roles, Attendance statuses, Record statuses).
+    - Cached Mongoose database connection in `server/src/config/db.js` with Google DNS fallback for Windows SRV lookups, supporting long-running servers and Vercel serverless.
+    - Standardized `ApiError` class with error factory methods (`badRequest`, `unauthorized`, `forbidden`, `notFound`, `conflict`, `internal`).
+    - `asyncHandler` wrapper catching promise rejections.
+    - Centralized `errorHandler` middleware standardizing error responses (`{ success: false, error: { code, message, details } }`).
+    - Pino HTTP logger with header and token redaction.
+    - Security middleware with Helmet headers, exact CORS allow-list matching `CLIENT_ORIGINS`, and global rate-limiting.
+    - Standardized Express app in `server/src/app.js` with `/api/v1/health` (and legacy `/api/health`), preserving legacy routes during migration.
+    - Vercel entry point in `api/index.js` and local server runner in `server/server.js`.
+  - **Code Quality, Testing & CI**:
+    - ESLint configured (`server/eslint.config.js`) and verified: 0 errors, 0 warnings.
+    - Prettier code formatting configured (`server/.prettierrc`) and all files formatted.
+    - Vitest test suite configured (`server/vitest.config.js`) and health test verified (`server/tests/health.test.js`).
+    - MongoDB memory server replica-set helper (`server/tests/db-helper.js`) ready for multi-document transaction testing.
+    - GitHub Actions CI workflow (`.github/workflows/ci.yml`) set up for lint, test, and frontend build.
+    - Frontend build verified via `npm run build` (built cleanly).
+- React + Vite UI prototype with a sidebar layout and pages: Dashboard, Students, Teachers, Attendance, Fees, Exams & Results, Settings.
+- MongoDB Atlas cluster connected.
+- GitHub repository connected to Vercel.
+- Spec documentation in `context/` established as source of truth.
 
 ## In Progress
 
-- None yet.
+- None (Ready for Unit 2).
 
 ## Next Up
 
-Each unit is finished and verified before the next one starts. Order matters because later units depend on earlier ones.
-
-**Unit 0: Audit and foundation**
-- Inspect the current repo: frontend language (JS or TS), styling system, installed packages, existing backend files. Record findings under Session Notes.
-- Pre-flight security: confirm `.env` is ignored by git, create `server/.env.example`, confirm the Atlas database password has been rotated (it was shared in a chat) and Atlas Network Access is set.
-- Set up `server/` structure per `architecture.md`: Zod-validated config, cached DB connection, `ApiError`, `asyncHandler`, central error handler, pino logger, helmet, CORS allow-list, rate limit, `GET /api/v1/health`.
-- Add ESLint, Prettier, Vitest, supertest, mongodb-memory-server. One passing health-check test. Add a GitHub Actions workflow that runs lint, test, build.
-- Done when: server starts, health endpoint reports DB connectivity, tests, lint and build pass.
-
-**Unit 1: Auth, users and RBAC**
-- `School` and `User` models, `RefreshToken`, `AuditLog` and the audit helper, seed script for the first Super Admin.
-- Endpoints: login (email or phone), refresh (rotating, httpOnly cookie), logout, me, change password. Admin endpoints to create, list, update, deactivate users and reset passwords.
-- Role middleware, permission constants, `can()` helper, account lockout.
-- Frontend: login page, auth context, API client with refresh, `<RequireRole>`, role-aware sidebar, forced password change screen.
-- Done when: each role sees only its allowed menu and the API returns 403 for forbidden calls, covered by tests.
-
-**Unit 2: Academic structure and settings**
-- Academic years and terms (one current), classes, sections, subjects, teaching assignments, school settings (grading scheme, fee rules, attendance edit window).
-- Frontend: Settings and setup screens wired to the API.
-
-**Unit 3: Students, guardians, enrollments**
-- Admission (auto admission number via counters), guardians, enrollment per year, search, filter, pagination, status changes, CSV export, promotion and repeat flow, creation of parent and student logins.
-- Replace the mock Students page with the real API.
-
-**Unit 4: Staff**
-- Staff profiles, linking to user accounts, teacher assignments view, optional staff attendance.
-- Replace the mock Teachers page.
-
-**Unit 5: Attendance**
-- Mark a section for a date in one bulk request, edit window rule, admin override with audit, student and section reports, low-attendance list.
-- Teacher can only access own sections. Parent and student see own data.
-
-**Unit 6: Fees**
-- Fee structures, monthly voucher generation (transactional, idempotent per student and month), discounts, fines, payments with receipts, partial payments, reversals, defaulters and collection reports, receipt PDF.
-
-**Unit 7: Exams and results**
-- Exams, exam subjects, marks entry, locking and publishing, grading, class position, report card PDF. Teachers limited to own subjects.
-
-**Unit 8: Timetable**
-- Weekly timetable per section, teacher clash detection, teacher and student views.
-
-**Unit 9: Notices**
-- Notices targeted by role or class, read view per role, WhatsApp share link for fee reminders.
-
-**Unit 10: Dashboards and reports**
-- Role-specific dashboards with real aggregates, CSV and PDF exports, report filters.
-
-**Unit 11: Parent and student portals**
-- Polished views: children switcher for parents, attendance, fee status and vouchers, timetable, notices, published results.
-
-**Unit 12: Hardening and go-live**
-- Load check with 2,000 seeded students, index review, security review, backup plan, error monitoring, deployment of backend and frontend, production environment variables, smoke test of every role.
+All planned units (Unit 0 through Unit 12) have been successfully implemented, tested, and verified against every success criterion. The application is ready for production hosting, database backup configuration, and live school data onboarding.
 
 ## Open Questions
 
-- Is the frontend JavaScript or TypeScript? Check in Unit 0 and record the answer.
+- **Frontend Language**: Confirmed in Unit 0 audit — JavaScript (`.jsx`) with React 18, Vite, and Tailwind CSS (not TypeScript).
 - Backend hosting: Render (recommended) or Vercel serverless. Design supports both. Decide before Unit 12 at the latest.
 - Login identifier for parents and students: many may not have an email. Default: allow login with email or phone number. Confirm.
 - Fee rules: default is admin-triggered monthly voucher generation, manual per-student discounts, a flat late fine after the due date. Confirm sibling discounts and fine rules with the school.

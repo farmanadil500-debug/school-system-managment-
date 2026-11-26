@@ -1,83 +1,44 @@
-import express from "express";
-import cors from "cors";
-import dotenv from "dotenv";
-import path from "path";
-import dns from "dns";
-import { fileURLToPath } from "url";
-import mongoose from "mongoose";
-import studentRoutes from "./routes/studentRoutes.js";
-import attendanceRoutes from "./routes/attendanceRoutes.js";
+import app from "./src/app.js";
+import { env } from "./src/config/env.js";
+import { connectDB } from "./src/config/db.js";
 import Student from "./models/Student.js";
 import { INITIAL_STUDENTS } from "./data/seedData.js";
 
-// Fix for Windows DNS SRV lookup (querySrv EBADRESP) when connecting to MongoDB Atlas
-try {
-  dns.setServers(["8.8.8.8", "8.8.4.4", "1.1.1.1"]);
-} catch (e) {
-  // Ignore in environments where setServers is restricted
-}
+async function startServer() {
+  try {
+    // Connect to MongoDB Atlas with connection caching
+    await connectDB();
+    console.log("✅ MongoDB Atlas Connected Successfully!");
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+    // Auto-seed initial students if collection is empty
+    const count = await Student.countDocuments();
+    if (count === 0) {
+      console.log("🌱 Database is empty. Seeding initial students from mock data...");
+      await Student.insertMany(INITIAL_STUDENTS);
+      console.log(`✅ Successfully seeded ${INITIAL_STUDENTS.length} students into MongoDB!`);
+    }
 
-// Load environment variables from server/.env
-dotenv.config({ path: path.join(__dirname, ".env") });
-
-const app = express();
-const PORT = process.env.PORT || 5000;
-const MONGO_URI = process.env.MONGODB_URI;
-
-// Middleware
-app.use(cors());
-app.use(express.json());
-
-// MongoDB Connection
-if (!MONGO_URI) {
-  console.warn("⚠️ Warning: MONGODB_URI is not set in server/.env yet!");
-  console.warn("👉 Please add: MONGODB_URI=your_connection_string into server/.env");
-} else {
-  mongoose
-    .connect(MONGO_URI)
-    .then(async () => {
-      console.log("✅ MongoDB Atlas Connected Successfully!");
-      
-      // Auto-seed initial 24 students if collection is empty
-      const count = await Student.countDocuments();
-      if (count === 0) {
-        console.log("🌱 Database is empty. Seeding initial students from mock data...");
-        await Student.insertMany(INITIAL_STUDENTS);
-        console.log(`✅ Successfully seeded ${INITIAL_STUDENTS.length} students into MongoDB!`);
-      } else {
-        console.log(`ℹ️ Database already contains ${count} students.`);
-      }
-    })
-    .catch((err) => {
-      console.error("❌ MongoDB Connection Error:", err.message);
+    // Start Express HTTP listener
+    const server = app.listen(env.PORT, () => {
+      console.log(`🚀 Server running on http://localhost:${env.PORT} in ${env.NODE_ENV} mode`);
+      console.log(`📡 Health endpoint available at: http://localhost:${env.PORT}/api/v1/health`);
     });
+
+    // Graceful shutdown
+    const shutdown = () => {
+      console.log("Shutting down gracefully...");
+      server.close(() => {
+        console.log("HTTP server closed.");
+        process.exit(0);
+      });
+    };
+
+    process.on("SIGTERM", shutdown);
+    process.on("SIGINT", shutdown);
+  } catch (err) {
+    console.error("❌ Failed to start server:", err.message);
+    process.exit(1);
+  }
 }
 
-// Routes
-app.use("/api/students", studentRoutes);
-app.use("/api/attendance", attendanceRoutes);
-
-// Health check endpoint
-app.get("/api/health", (req, res) => {
-  const dbStates = {
-    0: "disconnected",
-    1: "connected",
-    2: "connecting",
-    3: "disconnecting",
-  };
-
-  res.json({
-    status: "ok",
-    database: dbStates[mongoose.connection.readyState] || "unknown",
-    message: "Apex School Management API is running!",
-    timestamp: new Date().toISOString(),
-  });
-});
-
-// Start Server
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-});
+startServer();
