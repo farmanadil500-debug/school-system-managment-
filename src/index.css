@@ -46,64 +46,96 @@ html.dark .bg-white:not(.pure-white-paper):not(.challan-sheet):not(.challan-shee
 
 /* Force Challan & Printable Documents to ALWAYS remain crisp white paper with jet black text */
 .pure-white-paper,
-.pure-white-paper *,
-.challan-sheet,
-.challan-sheet * {
+.challan-sheet {
   background-color: #ffffff !important;
   color: #000000 !important;
-  border-color: #000000 !important;
 }
 
+.pure-white-paper .bg-white,
+.challan-sheet .bg-white {
+  background-color: #ffffff !important;
+}
+
+.challan-sheet .bg-slate-50,
+.pure-white-paper .bg-slate-50,
 .challan-sheet .bg-neutral-50,
 .pure-white-paper .bg-neutral-50 {
   background-color: #f8fafc !important;
 }
 
+.challan-sheet .bg-slate-100,
+.pure-white-paper .bg-slate-100,
 .challan-sheet .bg-neutral-100,
 .pure-white-paper .bg-neutral-100 {
   background-color: #f1f5f9 !important;
 }
 
+.challan-sheet .text-slate-500,
+.pure-white-paper .text-slate-500,
 .challan-sheet .text-neutral-500,
 .pure-white-paper .text-neutral-500 {
   color: #64748b !important;
 }
 
+.challan-sheet .text-slate-600,
+.pure-white-paper .text-slate-600,
 .challan-sheet .text-neutral-600,
 .pure-white-paper .text-neutral-600 {
   color: #475569 !important;
 }
 
+.challan-sheet .text-slate-700,
+.pure-white-paper .text-slate-700,
 .challan-sheet .text-neutral-700,
 .pure-white-paper .text-neutral-700 {
   color: #334155 !important;
 }
 
+.challan-sheet .text-slate-800,
+.pure-white-paper .text-slate-800,
 .challan-sheet .text-neutral-800,
 .pure-white-paper .text-neutral-800,
+.challan-sheet .text-slate-900,
+.pure-white-paper .text-slate-900,
 .challan-sheet .text-neutral-900,
 .pure-white-paper .text-neutral-900 {
   color: #0f172a !important;
 }
 
+.challan-sheet .border-slate-100,
+.pure-white-paper .border-slate-100 {
+  border-color: #f1f5f9 !important;
+}
+
+.challan-sheet .border-slate-200,
+.pure-white-paper .border-slate-200,
 .challan-sheet .border-neutral-200,
 .pure-white-paper .border-neutral-200 {
   border-color: #e2e8f0 !important;
 }
 
+.challan-sheet .border-slate-300,
+.pure-white-paper .border-slate-300,
 .challan-sheet .border-neutral-300,
 .pure-white-paper .border-neutral-300 {
   border-color: #cbd5e1 !important;
 }
 
-.challan-sheet .border-neutral-800,
-.pure-white-paper .border-neutral-800 {
-  border-color: #1e293b !important;
+.challan-sheet .border-slate-400,
+.pure-white-paper .border-slate-400 {
+  border-color: #94a3b8 !important;
+}
+
+.challan-sheet .border-slate-700,
+.pure-white-paper .border-slate-700,
+.challan-sheet .border-slate-800,
+.pure-white-paper .border-slate-800 {
+  border-color: #334155 !important;
 }
 
 .challan-sheet .border-black,
 .pure-white-paper .border-black {
-  border-color: #000000 !important;
+  border-color: #0f172a !important;
 }
 
 html.dark .bg-slate-50 {
@@ -285,7 +317,7 @@ html.dark table tbody tr:hover {
 @media print {
   @page {
     size: landscape;
-    margin: 5mm;
+    margin: 4mm;
   }
 
   html,
@@ -295,7 +327,7 @@ html.dark table tbody tr:hover {
     margin: 0 !important;
     padding: 0 !important;
     width: 100% !important;
-    height: auto !important;
+    height: 100% !important;
     overflow: visible !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
@@ -307,7 +339,7 @@ html.dark table tbody tr:hover {
 
   .print-area,
   .print-area * {
-    visibility: visible;
+    visibility: visible !important;
   }
 
   .print-area {
@@ -317,10 +349,11 @@ html.dark table tbody tr:hover {
     width: 100% !important;
     max-width: 100% !important;
     margin: 0 !important;
-    padding: 0 !important;
+    padding: 1.5mm !important;
     background: #ffffff !important;
     border: none !important;
     box-shadow: none !important;
+    box-sizing: border-box !important;
   }
 
   .no-print,
