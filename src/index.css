@@ -39,9 +39,71 @@ nav,
 }
 
 /* Universal Dark Theme Overrides for high-contrast crisp UI */
-html.dark .bg-white {
+html.dark .bg-white:not(.pure-white-paper):not(.challan-sheet):not(.challan-sheet *) {
   background-color: #0f172a !important;
   /* slate-900 */
+}
+
+/* Force Challan & Printable Documents to ALWAYS remain crisp white paper with jet black text */
+.pure-white-paper,
+.pure-white-paper *,
+.challan-sheet,
+.challan-sheet * {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border-color: #000000 !important;
+}
+
+.challan-sheet .bg-neutral-50,
+.pure-white-paper .bg-neutral-50 {
+  background-color: #f8fafc !important;
+}
+
+.challan-sheet .bg-neutral-100,
+.pure-white-paper .bg-neutral-100 {
+  background-color: #f1f5f9 !important;
+}
+
+.challan-sheet .text-neutral-500,
+.pure-white-paper .text-neutral-500 {
+  color: #64748b !important;
+}
+
+.challan-sheet .text-neutral-600,
+.pure-white-paper .text-neutral-600 {
+  color: #475569 !important;
+}
+
+.challan-sheet .text-neutral-700,
+.pure-white-paper .text-neutral-700 {
+  color: #334155 !important;
+}
+
+.challan-sheet .text-neutral-800,
+.pure-white-paper .text-neutral-800,
+.challan-sheet .text-neutral-900,
+.pure-white-paper .text-neutral-900 {
+  color: #0f172a !important;
+}
+
+.challan-sheet .border-neutral-200,
+.pure-white-paper .border-neutral-200 {
+  border-color: #e2e8f0 !important;
+}
+
+.challan-sheet .border-neutral-300,
+.pure-white-paper .border-neutral-300 {
+  border-color: #cbd5e1 !important;
+}
+
+.challan-sheet .border-neutral-800,
+.pure-white-paper .border-neutral-800 {
+  border-color: #1e293b !important;
+}
+
+.challan-sheet .border-black,
+.pure-white-paper .border-black {
+  border-color: #000000 !important;
 }
 
 html.dark .bg-slate-50 {

@@ -35,7 +35,10 @@ function ChallanSlip({
   const isPartial = challan.status === "partial";
 
   return (
-    <div className="flex flex-col justify-between border-2 border-black bg-white p-3 text-[10.5px] leading-tight text-black shadow-sm print:shadow-none print:border-black break-inside-avoid">
+    <div
+      style={{ backgroundColor: "#ffffff", color: "#000000", borderColor: "#000000" }}
+      className="challan-sheet pure-white-paper flex flex-col justify-between border-2 border-black bg-white p-3 text-[10.5px] leading-tight text-black shadow-sm print:shadow-none print:border-black break-inside-avoid"
+    >
       <div>
         {/* Institutional Bank Header */}
         <div className="border-b-2 border-black pb-2 text-center">
@@ -358,7 +361,10 @@ export default function FeeChallanModal({ open, onClose, challan }) {
         {/* Preview Viewport: Crisp White Paper Canvas */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-neutral-200/60 print:p-0 print:bg-white print:overflow-visible">
           {/* Paper Sheet Representation */}
-          <div className="print-area bg-white text-black p-4 sm:p-5 shadow-lg border border-neutral-300 print:shadow-none print:border-none print:p-0 max-w-5xl mx-auto">
+          <div
+            style={{ backgroundColor: "#ffffff", color: "#000000" }}
+            className="print-area challan-sheet pure-white-paper bg-white text-black p-4 sm:p-5 shadow-2xl border border-neutral-300 print:shadow-none print:border-none print:p-0 max-w-5xl mx-auto rounded-lg"
+          >
             {viewMode === "3copy" ? (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 print:grid-cols-3 print:gap-2">
                 {/* 1. BANK COPY */}
