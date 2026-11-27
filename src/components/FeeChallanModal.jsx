@@ -39,11 +39,11 @@ function ChallanSlip({
   return (
     <div
       style={{ backgroundColor: "#ffffff", color: "#000000" }}
-      className="challan-sheet pure-white-paper min-w-0 w-full flex flex-col justify-between border border-slate-700 bg-white p-2 sm:p-2.5 text-[8.5px] leading-tight text-slate-900 shadow-sm print:shadow-none print:border-slate-800 break-inside-avoid box-sizing:border-box"
+      className="challan-sheet pure-white-paper min-w-0 w-full flex flex-col justify-between border border-slate-400 bg-white p-2 sm:p-2.5 text-[8.5px] leading-tight text-slate-900 shadow-sm print:shadow-none print:border-slate-500 break-inside-avoid box-sizing:border-box"
     >
       <div>
         {/* Institutional Bank Header */}
-        <div className="border-b border-slate-300 pb-1.5 text-center">
+        <div className="border-b border-slate-200 pb-1.5 text-center">
           <div className="flex items-center justify-center gap-1.5 mb-0.5">
             <School className="h-3.5 w-3.5 text-slate-800 shrink-0" />
             <h2 className="font-extrabold text-[11px] sm:text-xs tracking-tight uppercase font-serif text-slate-900 whitespace-nowrap">
@@ -53,33 +53,33 @@ function ChallanSlip({
           <p className="text-[7.5px] text-slate-500 tracking-tight leading-none">
             Main Campus, Gulberg III, Lahore · Tel: (042) 3578-9000
           </p>
-          <div className="mt-1 border border-slate-200 bg-slate-50 py-0.5 px-1 text-[7.5px] font-semibold text-slate-700 flex items-center justify-center gap-1 rounded-sm">
+          <div className="mt-1 border border-slate-200 bg-slate-50/80 py-0.5 px-1 text-[7.5px] font-semibold text-slate-700 flex items-center justify-center gap-1 rounded-sm">
             <Building2 className="h-2.5 w-2.5 shrink-0 text-slate-600" />
             <span className="truncate">Meezan Bank Ltd · A/C: 0102-0100456789</span>
           </div>
 
           {/* Copy Identification Tag */}
           <div className="mt-1 flex justify-center">
-            <span className="border border-slate-300 bg-slate-100 px-2.5 py-0.5 text-[8.5px] font-black uppercase tracking-wider text-slate-800 rounded-sm">
+            <span className="border border-slate-200 bg-slate-100/90 px-2.5 py-0.5 text-[8.5px] font-black uppercase tracking-wider text-slate-800 rounded-sm">
               [ {type} ]
             </span>
           </div>
         </div>
 
         {/* Challan Metadata Table Grid (Fixed Layout & Light Borders) */}
-        <table className="w-full mt-1 border border-slate-300 text-[8px] table-fixed">
+        <table className="w-full mt-1 border border-slate-200 text-[8px] table-fixed">
           <tbody>
             <tr className="border-b border-slate-200 bg-slate-50/70">
-              <td className="w-[28%] px-1 py-0.5 border-r border-slate-200 font-medium text-slate-500 truncate">
+              <td className="w-[24%] px-1 py-0.5 border-r border-slate-200 font-medium text-slate-500 truncate">
                 Challan No:
               </td>
               <td className="w-[32%] px-1 py-0.5 border-r border-slate-200 font-bold font-mono text-slate-900 truncate">
                 {challan.voucherNo}
               </td>
-              <td className="w-[18%] px-1 py-0.5 border-r border-slate-200 font-medium text-slate-500 truncate">
+              <td className="w-[16%] px-1 py-0.5 border-r border-slate-200 font-medium text-slate-500 truncate">
                 Month:
               </td>
-              <td className="w-[22%] px-1 py-0.5 font-bold text-slate-900 truncate">
+              <td className="w-[28%] px-1 py-0.5 font-bold text-slate-900 truncate">
                 {monthName}
               </td>
             </tr>
@@ -101,11 +101,11 @@ function ChallanSlip({
         </table>
 
         {/* Student Information Grid (Fixed Layout & Light Borders) */}
-        <table className="w-full mt-1 border border-slate-300 text-[8px] table-fixed">
+        <table className="w-full mt-1 border border-slate-200 text-[8px] table-fixed">
           <tbody>
             <tr className="border-b border-slate-200">
-              <td className="w-[28%] px-1 py-0.5 text-slate-500 font-medium">Student Name:</td>
-              <td className="w-[72%] px-1 py-0.5 font-bold text-slate-900 uppercase truncate" colSpan="3">
+              <td className="w-[26%] px-1 py-0.5 text-slate-500 font-medium">Student Name:</td>
+              <td className="w-[74%] px-1 py-0.5 font-bold text-slate-900 uppercase truncate" colSpan="3">
                 {challan.studentName}
               </td>
             </tr>
@@ -116,14 +116,14 @@ function ChallanSlip({
               </td>
             </tr>
             <tr className="border-b border-slate-200">
-              <td className="w-[28%] px-1 py-0.5 text-slate-500 font-medium">Admission No:</td>
-              <td className="w-[32%] px-1 py-0.5 font-mono font-bold text-slate-900 truncate">
+              <td className="w-[26%] px-1 py-0.5 text-slate-500 font-medium">Admission No:</td>
+              <td className="w-[34%] px-1 py-0.5 font-mono font-bold text-slate-900 truncate">
                 {challan.admissionNo}
               </td>
-              <td className="w-[18%] px-1 py-0.5 text-slate-500 font-medium border-l border-slate-200">
+              <td className="w-[16%] px-1 py-0.5 text-slate-500 font-medium border-l border-slate-200">
                 Roll No:
               </td>
-              <td className="w-[22%] px-1 py-0.5 font-mono font-bold text-slate-900 truncate">
+              <td className="w-[24%] px-1 py-0.5 font-mono font-bold text-slate-900 truncate">
                 {challan.rollNo || "—"}
               </td>
             </tr>
@@ -144,9 +144,9 @@ function ChallanSlip({
 
         {/* Fee Particulars Table */}
         <div className="mt-1">
-          <table className="w-full border border-slate-300 text-[8px] table-fixed">
+          <table className="w-full border border-slate-200 text-[8px] table-fixed">
             <thead>
-              <tr className="border-b border-slate-300 bg-slate-50 font-bold text-slate-800">
+              <tr className="border-b border-slate-200 bg-slate-50/80 font-bold text-slate-800">
                 <th className="w-5 px-1 py-0.5 text-center border-r border-slate-200">#</th>
                 <th className="px-1.5 py-0.5 text-left border-r border-slate-200">Fee Particulars</th>
                 <th className="w-16 px-1 py-0.5 text-right">Amount (Rs.)</th>
@@ -192,8 +192,8 @@ function ChallanSlip({
           </table>
 
           {/* Totals Summary Box */}
-          <div className="mt-1 border border-slate-300 font-mono text-[8px]">
-            <div className="flex justify-between items-center px-1.5 py-0.5 bg-slate-50 font-bold border-b border-slate-200">
+          <div className="mt-1 border border-slate-200 font-mono text-[8px]">
+            <div className="flex justify-between items-center px-1.5 py-0.5 bg-slate-50/80 font-bold border-b border-slate-200">
               <span className="text-slate-800">Payable within Due Date:</span>
               <span className="text-[9.5px] font-black text-slate-900">Rs. {formatPKR(challan.total)}</span>
             </div>
@@ -209,7 +209,7 @@ function ChallanSlip({
         </div>
 
         {/* Payment Status Notice / Stamp Box */}
-        <div className="mt-1 border border-slate-300 p-0.5 text-center font-bold text-[7.5px] bg-slate-50/70 rounded-sm">
+        <div className="mt-1 border border-slate-200 p-0.5 text-center font-bold text-[7.5px] bg-slate-50/70 rounded-sm">
           {isPaid ? (
             <div className="uppercase text-emerald-700">
               <span>✓ FEE PAID IN FULL · RS. {formatPKR(challan.paidAmount)}</span>
@@ -239,13 +239,13 @@ function ChallanSlip({
       </div>
 
       {/* Dual Signature Fields */}
-      <div className="mt-3 pt-2 border-t border-slate-300 flex justify-between text-[7.5px] text-slate-600 font-sans">
+      <div className="mt-3 pt-2 border-t border-slate-200 flex justify-between text-[7.5px] text-slate-600 font-sans">
         <div className="text-center">
-          <div className="w-20 border-b border-slate-400 mb-0.5"></div>
+          <div className="w-20 border-b border-slate-300 mb-0.5"></div>
           <span>Depositor's Sign</span>
         </div>
         <div className="text-center">
-          <div className="w-24 border-b border-slate-400 mb-0.5"></div>
+          <div className="w-24 border-b border-slate-300 mb-0.5"></div>
           <span>Bank / Cashier Stamp</span>
         </div>
       </div>
