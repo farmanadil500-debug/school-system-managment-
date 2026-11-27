@@ -3,17 +3,13 @@ import {
   Printer,
   X,
   School,
-  CheckCircle2,
-  Calendar,
-  CreditCard,
-  AlertCircle,
-  FileText,
   Building2,
   Scissors,
+  Check,
 } from "lucide-react";
 
 /**
- * Format currency in Pakistani Rupees
+ * Format currency in Pakistani Rupees with standard banking comma separation
  */
 function formatPKR(num) {
   if (num == null || isNaN(num)) return "0";
@@ -21,11 +17,12 @@ function formatPKR(num) {
 }
 
 /**
- * Single Challan Slip (Bank Copy, School Copy, or Student Copy)
+ * Single Professional Monochrome Bank Challan Slip
+ * Designed following authentic commercial banking & institutional guidelines:
+ * Strict high-contrast black & white, solid crisp borders, clean tabular data, zero gaudy colors.
  */
 function ChallanSlip({
   type = "BANK COPY",
-  badgeColor = "bg-blue-600 text-white",
   challan,
   formattedDueDate,
   formattedIssueDate,
@@ -38,110 +35,142 @@ function ChallanSlip({
   const isPartial = challan.status === "partial";
 
   return (
-    <div className="flex flex-col justify-between border-2 border-slate-800 bg-white p-3 text-[11px] leading-tight text-slate-900 shadow-sm rounded-lg print:rounded-none print:shadow-none print:border-slate-800 break-inside-avoid">
+    <div className="flex flex-col justify-between border-2 border-black bg-white p-3 text-[10.5px] leading-tight text-black shadow-sm print:shadow-none print:border-black break-inside-avoid">
       <div>
-        {/* Header with School Details */}
-        <div className="border-b-2 border-slate-800 pb-2 text-center">
+        {/* Institutional Bank Header */}
+        <div className="border-b-2 border-black pb-2 text-center">
           <div className="flex items-center justify-center gap-1.5 mb-0.5">
-            <School className="h-4 w-4 text-slate-800 shrink-0" />
-            <h2 className="font-black text-xs tracking-tight uppercase">
+            <School className="h-4 w-4 text-black shrink-0" />
+            <h2 className="font-extrabold text-xs tracking-tight uppercase font-serif">
               Apex International School
             </h2>
           </div>
-          <p className="text-[9px] text-slate-600">
-            Main Campus, Gulberg III, Lahore · Ph: +92 42 3578 9000
+          <p className="text-[8.5px] text-neutral-700 tracking-tight">
+            Main Campus, Gulberg III, Lahore · Tel: (042) 3578-9000
           </p>
-          <div className="mt-1 flex items-center justify-center gap-1 text-[9px] font-semibold text-slate-700 bg-slate-100 py-0.5 px-2 rounded">
-            <Building2 className="h-3 w-3" />
-            <span>Meezan Bank Ltd · A/C: 0102-0100456789</span>
+          <div className="mt-1 border border-neutral-800 bg-neutral-50 py-0.5 px-1.5 text-[8.5px] font-semibold text-neutral-900 flex items-center justify-center gap-1">
+            <Building2 className="h-3 w-3 shrink-0" />
+            <span>Meezan Bank Ltd · A/C: 0102-0100456789 (Main Branch)</span>
           </div>
 
-          {/* Copy Badge */}
+          {/* Copy Identification Tag */}
           <div className="mt-1.5 flex justify-center">
-            <span
-              className={`px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider rounded ${badgeColor} print:bg-slate-800 print:text-white`}
-            >
+            <span className="border border-black bg-neutral-100 px-3 py-0.5 text-[9.5px] font-black uppercase tracking-widest text-black">
               [ {type} ]
             </span>
           </div>
         </div>
 
-        {/* Challan Meta & Date Box */}
-        <div className="grid grid-cols-2 gap-1 py-1.5 border-b border-slate-300 text-[10px] bg-slate-50 px-1.5 mt-1 font-mono">
-          <div>
-            <span className="text-slate-500 block text-[9px]">Challan #:</span>
-            <span className="font-bold text-slate-900">{challan.voucherNo}</span>
-          </div>
-          <div className="text-right">
-            <span className="text-slate-500 block text-[9px]">Billing Month:</span>
-            <span className="font-bold text-slate-900">{monthName}</span>
-          </div>
-          <div>
-            <span className="text-slate-500 block text-[9px]">Issue Date:</span>
-            <span>{formattedIssueDate}</span>
-          </div>
-          <div className="text-right">
-            <span className="text-slate-500 block text-[9px]">Due Date:</span>
-            <span className="font-bold text-rose-600">{formattedDueDate}</span>
-          </div>
-        </div>
+        {/* Challan Metadata Table Grid */}
+        <table className="w-full mt-1.5 border border-black text-[9px] font-mono">
+          <tbody>
+            <tr className="border-b border-black bg-neutral-50">
+              <td className="px-1.5 py-0.5 border-r border-black font-semibold text-neutral-600">
+                Challan No:
+              </td>
+              <td className="px-1.5 py-0.5 border-r border-black font-bold text-black">
+                {challan.voucherNo}
+              </td>
+              <td className="px-1.5 py-0.5 border-r border-black font-semibold text-neutral-600">
+                Month:
+              </td>
+              <td className="px-1.5 py-0.5 font-bold text-black">
+                {monthName}
+              </td>
+            </tr>
+            <tr>
+              <td className="px-1.5 py-0.5 border-r border-black font-semibold text-neutral-600">
+                Issue Date:
+              </td>
+              <td className="px-1.5 py-0.5 border-r border-black">
+                {formattedIssueDate}
+              </td>
+              <td className="px-1.5 py-0.5 border-r border-black font-semibold text-neutral-600">
+                Due Date:
+              </td>
+              <td className="px-1.5 py-0.5 font-bold text-black">
+                {formattedDueDate}
+              </td>
+            </tr>
+          </tbody>
+        </table>
 
-        {/* Student Details Box */}
-        <div className="py-2 border-b border-slate-300 space-y-1">
-          <div className="flex justify-between">
-            <span className="text-slate-500">Student Name:</span>
-            <span className="font-bold text-slate-900">{challan.studentName}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-slate-500">Father/Guardian:</span>
-            <span className="font-semibold text-slate-800">
-              {challan.guardianName || "—"}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-slate-500">Admission / Roll:</span>
-            <span className="font-mono font-bold text-slate-900">
-              {challan.admissionNo} {challan.rollNo ? `(Roll: ${challan.rollNo})` : ""}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-slate-500">Class & Section:</span>
-            <span className="font-semibold text-slate-800">
-              {challan.className} {challan.sectionName ? `· ${challan.sectionName}` : ""}
-            </span>
-          </div>
-        </div>
+        {/* Student Information Grid */}
+        <table className="w-full mt-1.5 border border-black text-[9.5px]">
+          <tbody>
+            <tr className="border-b border-neutral-300">
+              <td className="px-1.5 py-1 w-24 text-neutral-600 font-medium">Student Name:</td>
+              <td className="px-1.5 py-1 font-bold text-black uppercase" colSpan="3">
+                {challan.studentName}
+              </td>
+            </tr>
+            <tr className="border-b border-neutral-300">
+              <td className="px-1.5 py-1 text-neutral-600 font-medium">Father / Guardian:</td>
+              <td className="px-1.5 py-1 font-semibold text-neutral-900" colSpan="3">
+                {challan.guardianName || "—"}
+              </td>
+            </tr>
+            <tr className="border-b border-neutral-300">
+              <td className="px-1.5 py-1 text-neutral-600 font-medium">Admission No:</td>
+              <td className="px-1.5 py-1 font-mono font-bold">{challan.admissionNo}</td>
+              <td className="px-1.5 py-1 w-16 text-neutral-600 font-medium border-l border-neutral-300">
+                Roll No:
+              </td>
+              <td className="px-1.5 py-1 font-mono font-bold">{challan.rollNo || "—"}</td>
+            </tr>
+            <tr>
+              <td className="px-1.5 py-1 text-neutral-600 font-medium">Class:</td>
+              <td className="px-1.5 py-1 font-semibold">{challan.className}</td>
+              <td className="px-1.5 py-1 text-neutral-600 font-medium border-l border-neutral-300">
+                Section:
+              </td>
+              <td className="px-1.5 py-1 font-semibold">{challan.sectionName || "A"}</td>
+            </tr>
+          </tbody>
+        </table>
 
-        {/* Particulars Table */}
-        <div className="py-2 border-b border-slate-300">
-          <table className="w-full text-[10px]">
+        {/* Fee Particulars Table */}
+        <div className="mt-1.5">
+          <table className="w-full border border-black text-[9px]">
             <thead>
-              <tr className="border-b border-slate-400 font-bold text-slate-700">
-                <th className="text-left pb-1">Particulars</th>
-                <th className="text-right pb-1">Amount (PKR)</th>
+              <tr className="border-b border-black bg-neutral-100 font-bold text-black">
+                <th className="px-1.5 py-1 text-left w-6 border-r border-black">#</th>
+                <th className="px-1.5 py-1 text-left border-r border-black">Fee Particulars</th>
+                <th className="px-1.5 py-1 text-right w-20">Amount (Rs.)</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200">
+            <tbody className="divide-y divide-neutral-200 font-mono">
               {breakdownItems.map((item, idx) => (
-                <tr key={idx} className="py-0.5">
-                  <td className="py-0.5 text-slate-700">{item.name}</td>
-                  <td className="py-0.5 text-right font-mono font-medium">
+                <tr key={idx}>
+                  <td className="px-1.5 py-0.5 text-center border-r border-neutral-300 text-neutral-500">
+                    {idx + 1}
+                  </td>
+                  <td className="px-1.5 py-0.5 border-r border-neutral-300 font-sans text-neutral-900">
+                    {item.name}
+                  </td>
+                  <td className="px-1.5 py-0.5 text-right font-medium">
                     {formatPKR(item.amount)}
                   </td>
                 </tr>
               ))}
               {challan.fine > 0 && (
-                <tr className="text-rose-600">
-                  <td className="py-0.5">Fine / Arrears</td>
-                  <td className="py-0.5 text-right font-mono font-medium">
+                <tr>
+                  <td className="px-1.5 py-0.5 text-center border-r border-neutral-300">!</td>
+                  <td className="px-1.5 py-0.5 border-r border-neutral-300 font-sans">
+                    Previous Arrears / Late Fine
+                  </td>
+                  <td className="px-1.5 py-0.5 text-right font-medium">
                     {formatPKR(challan.fine)}
                   </td>
                 </tr>
               )}
               {challan.discount > 0 && (
-                <tr className="text-emerald-700">
-                  <td className="py-0.5">Fee Concession / Discount</td>
-                  <td className="py-0.5 text-right font-mono font-medium">
+                <tr>
+                  <td className="px-1.5 py-0.5 text-center border-r border-neutral-300">-</td>
+                  <td className="px-1.5 py-0.5 border-r border-neutral-300 font-sans">
+                    Fee Concession / Scholarship
+                  </td>
+                  <td className="px-1.5 py-0.5 text-right font-medium">
                     -{formatPKR(challan.discount)}
                   </td>
                 </tr>
@@ -149,64 +178,62 @@ function ChallanSlip({
             </tbody>
           </table>
 
-          {/* Totals Summary */}
-          <div className="mt-2 space-y-1 pt-1.5 border-t-2 border-slate-800 font-mono text-[10px]">
-            <div className="flex justify-between font-bold text-slate-900 text-[11px]">
+          {/* Totals Summary Box */}
+          <div className="mt-1 border-2 border-black font-mono text-[9.5px]">
+            <div className="flex justify-between items-center px-1.5 py-1 bg-neutral-100 font-black border-b border-black">
               <span>Payable within Due Date:</span>
-              <span className="font-black text-slate-900">
-                PKR {formatPKR(challan.total)}
-              </span>
+              <span className="text-[11px]">Rs. {formatPKR(challan.total)}</span>
             </div>
-            <div className="flex justify-between text-slate-600 text-[9px]">
-              <span>Late Fee Surcharge:</span>
-              <span>PKR {formatPKR(lateFee)}</span>
+            <div className="flex justify-between items-center px-1.5 py-0.5 border-b border-neutral-300 text-[8.5px] text-neutral-700">
+              <span>Late Fee Surcharge (After Due Date):</span>
+              <span>Rs. {formatPKR(lateFee)}</span>
             </div>
-            <div className="flex justify-between font-bold text-rose-700 text-[10px] bg-rose-50 p-1 rounded print:bg-slate-100 print:text-slate-900">
+            <div className="flex justify-between items-center px-1.5 py-1 font-bold bg-white">
               <span>Payable after Due Date:</span>
-              <span>PKR {formatPKR(totalAfterDue)}</span>
+              <span>Rs. {formatPKR(totalAfterDue)}</span>
             </div>
           </div>
         </div>
 
-        {/* Payment Status Notice */}
-        <div className="my-2 p-1.5 rounded text-center font-bold text-[10px]">
+        {/* Payment Status Notice / Official Stamp Box */}
+        <div className="mt-1.5 border border-black p-1 text-center font-bold text-[9px]">
           {isPaid ? (
-            <div className="border border-emerald-500 bg-emerald-50 text-emerald-800 p-1 rounded">
-              ✓ FEE PAID · PKR {formatPKR(challan.paidAmount)}
+            <div className="uppercase">
+              <span>✓ FEE PAID IN FULL · RS. {formatPKR(challan.paidAmount)}</span>
               {challan.paidAt && (
-                <span className="block text-[8px] font-normal font-mono text-emerald-700">
-                  Paid on {challan.paidAt} ({challan.paymentMethod || "Cash"})
+                <span className="block text-[8px] font-normal font-mono mt-0.5">
+                  Paid Date: {challan.paidAt} ({challan.paymentMethod || "Cash"})
                 </span>
               )}
             </div>
           ) : isPartial ? (
-            <div className="border border-amber-500 bg-amber-50 text-amber-800 p-1 rounded">
-              PARTIALLY PAID · Balance: PKR {formatPKR(challan.balance)}
+            <div className="uppercase">
+              PARTIAL PAYMENT RECEIVED · REMAINING BALANCE: RS. {formatPKR(challan.balance)}
             </div>
           ) : (
-            <div className="border border-rose-400 bg-rose-50 text-rose-800 p-1 rounded">
-              UNPAID · PLEASE PAY BY {formattedDueDate}
+            <div className="uppercase">
+              UNPAID · PLEASE DEPOSIT ON OR BEFORE {formattedDueDate}
             </div>
           )}
         </div>
 
-        {/* Terms */}
-        <div className="text-[8px] text-slate-500 space-y-0.5 pt-1">
-          <p>• Payments accepted at Meezan Bank branch counters & 1Link ATM/App.</p>
-          <p>• Fee once deposited is strictly non-refundable / non-transferable.</p>
-          <p>• Bank charges PKR 20 applicable per deposit voucher.</p>
+        {/* Banking Terms & Conditions */}
+        <div className="mt-1 text-[7.5px] text-neutral-700 leading-tight space-y-0.5">
+          <p>1. Payment is acceptable in Cash / 1Link at any Meezan Bank branch across Pakistan.</p>
+          <p>2. Fee once deposited is strictly non-refundable and non-transferable.</p>
+          <p>3. After the due date, late payment surcharge of Rs. {formatPKR(lateFee)} will be charged strictly.</p>
         </div>
       </div>
 
       {/* Dual Signature Fields */}
-      <div className="mt-6 pt-3 border-t border-slate-300 flex justify-between text-[9px] text-slate-600 font-sans">
+      <div className="mt-5 pt-3 border-t border-black flex justify-between text-[8.5px] text-neutral-800 font-sans">
         <div className="text-center">
-          <div className="w-20 border-b border-slate-400 mb-1"></div>
-          <span>Depositor Sign</span>
+          <div className="w-24 border-b border-neutral-600 mb-1"></div>
+          <span>Depositor's Signature</span>
         </div>
         <div className="text-center">
-          <div className="w-24 border-b border-slate-400 mb-1"></div>
-          <span>Cashier / Officer Stamp</span>
+          <div className="w-28 border-b border-neutral-600 mb-1"></div>
+          <span>Bank Officer / Cashier Stamp</span>
         </div>
       </div>
     </div>
@@ -215,6 +242,7 @@ function ChallanSlip({
 
 /**
  * 3-Copy Fee Challan Modal
+ * Guaranteed Pure White Canvas (#FFFFFF) across all themes (no dark mode inversion on the printed document).
  */
 export default function FeeChallanModal({ open, onClose, challan }) {
   const [viewMode, setViewMode] = useState("3copy"); // "3copy" | "single"
@@ -243,8 +271,8 @@ export default function FeeChallanModal({ open, onClose, challan }) {
       ? challan.items
       : [
           { name: "Monthly Tuition Fee", amount: (challan.total || 4500) - 500 },
-          { name: "Exam & Utility Charges", amount: 300 },
-          { name: "Computer & Lab Fund", amount: 200 },
+          { name: "Computer & Science Lab", amount: 300 },
+          { name: "Exam & Library Charges", amount: 200 },
         ];
 
   const lateFee = challan.lateFee || 500;
@@ -256,25 +284,25 @@ export default function FeeChallanModal({ open, onClose, challan }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
-      {/* Backdrop */}
+      {/* Dark backdrop */}
       <div
-        className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity no-print"
+        className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm transition-opacity no-print"
         onClick={onClose}
       />
 
-      {/* Modal Dialog */}
-      <div className="relative z-10 w-full max-w-6xl max-h-[94vh] flex flex-col rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden dark:bg-slate-900 dark:border-slate-800">
-        {/* Top Controls Header (Hidden during Print) */}
-        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4 bg-slate-50 dark:bg-slate-800/60 dark:border-slate-800 no-print">
+      {/* Modal Container */}
+      <div className="relative z-10 w-full max-w-6xl max-h-[95vh] flex flex-col rounded-2xl bg-white shadow-2xl border border-slate-300 overflow-hidden no-dark-inversion">
+        {/* Top Controls Header (Strictly hidden during window.print) */}
+        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-3.5 bg-slate-50 no-print">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-600 text-white shadow-sm">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-neutral-900 text-white shadow-sm">
               <Printer className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-slate-900 dark:text-white">
-                Official Bank Fee Challan
+              <h2 className="text-sm font-bold text-slate-900">
+                Official Bank Fee Challan Preview
               </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-slate-500 font-mono">
                 Challan #{challan.voucherNo} · {monthName} · {challan.studentName}
               </p>
             </div>
@@ -282,14 +310,14 @@ export default function FeeChallanModal({ open, onClose, challan }) {
 
           {/* Action Buttons & View Mode Toggle */}
           <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center rounded-xl border border-slate-200 bg-white p-1 text-xs font-semibold dark:border-slate-700 dark:bg-slate-800">
+            <div className="hidden sm:flex items-center rounded-lg border border-slate-300 bg-white p-0.5 text-xs font-semibold">
               <button
                 type="button"
                 onClick={() => setViewMode("3copy")}
-                className={`px-3 py-1.5 rounded-lg transition-all ${
+                className={`px-3 py-1.5 rounded transition-all ${
                   viewMode === "3copy"
-                    ? "bg-brand-600 text-white shadow-sm"
-                    : "text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
+                    ? "bg-neutral-900 text-white shadow-sm"
+                    : "text-slate-600 hover:text-slate-900"
                 }`}
               >
                 3-Copy Bank Challan
@@ -297,29 +325,29 @@ export default function FeeChallanModal({ open, onClose, challan }) {
               <button
                 type="button"
                 onClick={() => setViewMode("single")}
-                className={`px-3 py-1.5 rounded-lg transition-all ${
+                className={`px-3 py-1.5 rounded transition-all ${
                   viewMode === "single"
-                    ? "bg-brand-600 text-white shadow-sm"
-                    : "text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
+                    ? "bg-neutral-900 text-white shadow-sm"
+                    : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                Single Receipt
+                Single Slip
               </button>
             </div>
 
             <button
               type="button"
               onClick={handlePrint}
-              className="btn-primary py-2 px-4 shadow-md font-semibold flex items-center gap-2"
+              className="btn bg-neutral-900 hover:bg-black text-white py-1.5 px-4 shadow-sm font-semibold flex items-center gap-2 text-xs"
             >
               <Printer className="h-4 w-4" />
-              <span>Print Challan</span>
+              <span>Print Document</span>
             </button>
 
             <button
               type="button"
               onClick={onClose}
-              className="rounded-xl p-2 text-slate-400 transition hover:bg-slate-200 hover:text-slate-700 dark:hover:bg-slate-700 dark:hover:text-white"
+              className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-200 hover:text-slate-700"
               aria-label="Close"
             >
               <X className="h-5 w-5" />
@@ -327,16 +355,16 @@ export default function FeeChallanModal({ open, onClose, challan }) {
           </div>
         </div>
 
-        {/* Printable Scrollable Area */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-slate-100/70 dark:bg-slate-950/40">
-          <div className="print-area max-w-5xl mx-auto">
+        {/* Preview Viewport: Crisp White Paper Canvas */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-neutral-200/60 print:p-0 print:bg-white print:overflow-visible">
+          {/* Paper Sheet Representation */}
+          <div className="print-area bg-white text-black p-4 sm:p-5 shadow-lg border border-neutral-300 print:shadow-none print:border-none print:p-0 max-w-5xl mx-auto">
             {viewMode === "3copy" ? (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 print:grid-cols-3 print:gap-2">
                 {/* 1. BANK COPY */}
                 <div className="relative">
                   <ChallanSlip
                     type="BANK COPY"
-                    badgeColor="bg-blue-600 text-white"
                     challan={challan}
                     formattedDueDate={formattedDueDate}
                     formattedIssueDate={formattedIssueDate}
@@ -345,10 +373,10 @@ export default function FeeChallanModal({ open, onClose, challan }) {
                     lateFee={lateFee}
                     totalAfterDue={totalAfterDue}
                   />
-                  {/* Scissor cut line indicator */}
-                  <div className="hidden md:flex print:flex absolute -right-2 top-0 bottom-0 items-center justify-center pointer-events-none text-slate-300">
-                    <span className="text-[10px] transform rotate-90 flex items-center gap-1 font-mono">
-                      <Scissors className="h-3 w-3" /> ✂ - - - - - -
+                  {/* Subtle cutting line divider */}
+                  <div className="hidden md:flex print:flex absolute -right-2 top-0 bottom-0 items-center justify-center pointer-events-none text-neutral-400">
+                    <span className="text-[9px] transform rotate-90 flex items-center gap-1 font-mono tracking-widest">
+                      <Scissors className="h-3 w-3" /> ✂ - - - - - - - - ✂
                     </span>
                   </div>
                 </div>
@@ -357,7 +385,6 @@ export default function FeeChallanModal({ open, onClose, challan }) {
                 <div className="relative">
                   <ChallanSlip
                     type="SCHOOL COPY"
-                    badgeColor="bg-emerald-600 text-white"
                     challan={challan}
                     formattedDueDate={formattedDueDate}
                     formattedIssueDate={formattedIssueDate}
@@ -366,10 +393,10 @@ export default function FeeChallanModal({ open, onClose, challan }) {
                     lateFee={lateFee}
                     totalAfterDue={totalAfterDue}
                   />
-                  {/* Scissor cut line indicator */}
-                  <div className="hidden md:flex print:flex absolute -right-2 top-0 bottom-0 items-center justify-center pointer-events-none text-slate-300">
-                    <span className="text-[10px] transform rotate-90 flex items-center gap-1 font-mono">
-                      <Scissors className="h-3 w-3" /> ✂ - - - - - -
+                  {/* Subtle cutting line divider */}
+                  <div className="hidden md:flex print:flex absolute -right-2 top-0 bottom-0 items-center justify-center pointer-events-none text-neutral-400">
+                    <span className="text-[9px] transform rotate-90 flex items-center gap-1 font-mono tracking-widest">
+                      <Scissors className="h-3 w-3" /> ✂ - - - - - - - - ✂
                     </span>
                   </div>
                 </div>
@@ -378,7 +405,6 @@ export default function FeeChallanModal({ open, onClose, challan }) {
                 <div>
                   <ChallanSlip
                     type="STUDENT COPY"
-                    badgeColor="bg-purple-600 text-white"
                     challan={challan}
                     formattedDueDate={formattedDueDate}
                     formattedIssueDate={formattedIssueDate}
@@ -394,7 +420,6 @@ export default function FeeChallanModal({ open, onClose, challan }) {
               <div className="max-w-md mx-auto">
                 <ChallanSlip
                   type="STUDENT COPY"
-                  badgeColor="bg-brand-600 text-white"
                   challan={challan}
                   formattedDueDate={formattedDueDate}
                   formattedIssueDate={formattedIssueDate}
@@ -408,14 +433,14 @@ export default function FeeChallanModal({ open, onClose, challan }) {
           </div>
         </div>
 
-        {/* Footer info banner */}
-        <div className="flex items-center justify-between border-t border-slate-200 px-6 py-3 bg-white text-xs text-slate-500 dark:bg-slate-900 dark:border-slate-800 no-print">
+        {/* Bottom Helper Bar */}
+        <div className="flex items-center justify-between border-t border-slate-200 px-6 py-2.5 bg-white text-[11px] text-slate-600 no-print">
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-            <span>Standard A4 3-Copy Bank Challan formatted for direct landscape printing.</span>
+            <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
+            <span>Formatted for Standard A4 Landscape Paper (All Meezan Bank & 1Link Branches).</span>
           </div>
-          <div className="flex items-center gap-2 font-mono">
-            <span>Apex SMS Fee System</span>
+          <div className="flex items-center gap-2 font-mono text-[10px] text-slate-500">
+            <span>Apex International School ERP</span>
           </div>
         </div>
       </div>
