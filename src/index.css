@@ -221,18 +221,19 @@ html.dark table tbody tr:hover {
 }
 
 @media print {
+  @page {
+    size: landscape;
+    margin: 6mm;
+  }
 
   html,
-  body,
-  .print-area,
-  .print-area *,
-  html.dark .bg-white,
-  html.dark .bg-slate-50,
-  html.dark .print-area,
-  html.dark .print-area * {
-    background-color: #ffffff !important;
+  body {
+    background: #ffffff !important;
     color: #0f172a !important;
-    border-color: #e2e8f0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   body * {
@@ -245,13 +246,23 @@ html.dark table tbody tr:hover {
   }
 
   .print-area {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
   }
 
-  .no-print {
+  .no-print,
+  .no-print * {
     display: none !important;
+    visibility: hidden !important;
+  }
+
+  .break-inside-avoid {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
   }
 }
