@@ -35,7 +35,7 @@ main,
 nav,
 .card {
   transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-              border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Universal Dark Theme Overrides for high-contrast crisp UI */

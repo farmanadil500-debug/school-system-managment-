@@ -273,10 +273,10 @@ export default function FeeChallanModal({ open, onClose, challan }) {
     Array.isArray(challan.items) && challan.items.length > 0
       ? challan.items
       : [
-          { name: "Monthly Tuition Fee", amount: (challan.total || 4500) - 500 },
-          { name: "Computer & Science Lab", amount: 300 },
-          { name: "Exam & Library Charges", amount: 200 },
-        ];
+        { name: "Monthly Tuition Fee", amount: (challan.total || 4500) - 500 },
+        { name: "Computer & Science Lab", amount: 300 },
+        { name: "Exam & Library Charges", amount: 200 },
+      ];
 
   const lateFee = challan.lateFee || 500;
   const totalAfterDue = (challan.total || 0) + lateFee;
@@ -317,22 +317,20 @@ export default function FeeChallanModal({ open, onClose, challan }) {
               <button
                 type="button"
                 onClick={() => setViewMode("3copy")}
-                className={`px-3 py-1.5 rounded transition-all ${
-                  viewMode === "3copy"
-                    ? "bg-neutral-900 text-white shadow-sm"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
+                className={`px-3 py-1.5 rounded transition-all ${viewMode === "3copy"
+                  ? "bg-neutral-900 text-white shadow-sm"
+                  : "text-slate-600 hover:text-slate-900"
+                  }`}
               >
                 3-Copy Bank Challan
               </button>
               <button
                 type="button"
                 onClick={() => setViewMode("single")}
-                className={`px-3 py-1.5 rounded transition-all ${
-                  viewMode === "single"
-                    ? "bg-neutral-900 text-white shadow-sm"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
+                className={`px-3 py-1.5 rounded transition-all ${viewMode === "single"
+                  ? "bg-neutral-900 text-white shadow-sm"
+                  : "text-slate-600 hover:text-slate-900"
+                  }`}
               >
                 Single Slip
               </button>
