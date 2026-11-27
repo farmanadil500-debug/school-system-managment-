@@ -223,15 +223,18 @@ html.dark table tbody tr:hover {
 @media print {
   @page {
     size: landscape;
-    margin: 6mm;
+    margin: 5mm;
   }
 
   html,
   body {
     background: #ffffff !important;
-    color: #0f172a !important;
+    color: #000000 !important;
     margin: 0 !important;
     padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
@@ -250,15 +253,21 @@ html.dark table tbody tr:hover {
     left: 0 !important;
     top: 0 !important;
     width: 100% !important;
+    max-width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
     background: #ffffff !important;
+    border: none !important;
+    box-shadow: none !important;
   }
 
   .no-print,
   .no-print * {
     display: none !important;
     visibility: hidden !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
   .break-inside-avoid {

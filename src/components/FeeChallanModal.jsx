@@ -283,7 +283,7 @@ export default function FeeChallanModal({ open, onClose, challan }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 print:static print:block print:p-0">
       {/* Dark backdrop */}
       <div
         className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm transition-opacity no-print"
@@ -291,7 +291,7 @@ export default function FeeChallanModal({ open, onClose, challan }) {
       />
 
       {/* Modal Container */}
-      <div className="relative z-10 w-full max-w-6xl max-h-[95vh] flex flex-col rounded-2xl bg-white shadow-2xl border border-slate-300 overflow-hidden no-dark-inversion">
+      <div className="relative z-10 w-full max-w-6xl max-h-[95vh] flex flex-col rounded-2xl bg-white shadow-2xl border border-slate-300 overflow-hidden no-dark-inversion print:static print:max-h-none print:w-full print:border-none print:shadow-none print:rounded-none print:block print:overflow-visible">
         {/* Top Controls Header (Strictly hidden during window.print) */}
         <div className="flex items-center justify-between border-b border-slate-200 px-6 py-3.5 bg-slate-50 no-print">
           <div className="flex items-center gap-3">
