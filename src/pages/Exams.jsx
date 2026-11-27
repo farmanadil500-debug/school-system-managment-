@@ -487,9 +487,9 @@ export default function Exams({ students = [] }) {
               <button
                 type="button"
                 onClick={() => setCreateExamModalOpen(true)}
-                className="btn-primary text-xs"
+                className="btn-primary"
               >
-                <Plus className="h-3.5 w-3.5" />
+                <Plus className="h-4 w-4" />
                 <span>Create Exam</span>
               </button>
             )}
@@ -607,7 +607,7 @@ export default function Exams({ students = [] }) {
                     isSavingMarks ||
                     marksRecords.length === 0
                   }
-                  className="btn-primary inline-flex items-center gap-2 whitespace-nowrap text-xs"
+                  className="btn-primary"
                 >
                   {isSavingMarks ? (
                     <>

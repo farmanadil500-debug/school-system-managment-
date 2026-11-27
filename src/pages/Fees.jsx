@@ -386,18 +386,18 @@ export default function Fees({ students = [], setStudents, openCollect, onCloseC
                 <button
                   type="button"
                   onClick={() => setGenerateModalOpen(true)}
-                  className="btn-secondary text-xs"
+                  className="btn-secondary"
                 >
-                  <Plus className="h-3.5 w-3.5" />
+                  <Plus className="h-4 w-4" />
                   <span>Generate Vouchers</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => handleOpenCollect(null)}
-                  className="btn-primary text-xs"
+                  className="btn-primary"
                 >
-                  <DollarSign className="h-3.5 w-3.5" />
+                  <DollarSign className="h-4 w-4" />
                   <span>Collect Payment</span>
                 </button>
               </>

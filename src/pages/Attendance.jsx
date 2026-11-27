@@ -483,69 +483,99 @@ export default function Attendance({ students = [] }) {
         <div className="space-y-6">
           {/* Controls Bar */}
           <div className="card p-4">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              {/* Date, Class, Section Selectors */}
-              <div className="flex flex-wrap items-center gap-3">
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-slate-400" />
-                  <input
-                    type="date"
-                    value={date}
-                    max={today}
-                    onChange={(e) => setDate(e.target.value)}
-                    className="input w-auto text-sm font-semibold text-slate-800"
-                  />
-                </div>
+            <div className="flex flex-col gap-4">
+              {/* Row 1: Selectors and Primary Save Action */}
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                {/* Date, Class, Section Selectors */}
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-slate-400" />
+                    <input
+                      type="date"
+                      value={date}
+                      max={today}
+                      onChange={(e) => setDate(e.target.value)}
+                      className="input w-auto text-sm font-semibold text-slate-800"
+                    />
+                  </div>
 
-                <div className="flex items-center gap-2">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                    Class:
-                  </label>
-                  <select
-                    value={selectedClassId}
-                    onChange={(e) => setSelectedClassId(e.target.value)}
-                    className="input w-auto text-sm font-semibold"
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                      Class:
+                    </label>
+                    <select
+                      value={selectedClassId}
+                      onChange={(e) => setSelectedClassId(e.target.value)}
+                      className="input w-auto text-sm font-semibold"
+                    >
+                      {classesList.map((c) => (
+                        <option key={c._id} value={c._id}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                      Section:
+                    </label>
+                    <select
+                      value={selectedSectionId}
+                      onChange={(e) => setSelectedSectionId(e.target.value)}
+                      className="input w-auto text-sm font-semibold"
+                      disabled={availableSections.length === 0}
+                    >
+                      {availableSections.length === 0 ? (
+                        <option value="">No Sections</option>
+                      ) : (
+                        availableSections.map((s) => (
+                          <option key={s._id} value={s._id}>
+                            Section {s.name}
+                          </option>
+                        ))
+                      )}
+                    </select>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={loadAttendanceSheet}
+                    className="btn-ghost p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+                    title="Reload Sheet"
                   >
-                    {classesList.map((c) => (
-                      <option key={c._id} value={c._id}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
+                    <RefreshCw className="h-4 w-4" />
+                  </button>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                    Section:
-                  </label>
-                  <select
-                    value={selectedSectionId}
-                    onChange={(e) => setSelectedSectionId(e.target.value)}
-                    className="input w-auto text-sm font-semibold"
-                    disabled={availableSections.length === 0}
-                  >
-                    {availableSections.map((s) => (
-                      <option key={s._id} value={s._id}>
-                        Section {s.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
+                {/* Save Attendance Button */}
                 <button
                   type="button"
-                  onClick={loadAttendanceSheet}
-                  className="btn-ghost p-2 text-slate-400 hover:text-slate-700"
-                  title="Reload Sheet"
+                  onClick={handleSaveAttendance}
+                  disabled={!canEdit || isSaving || roster.length === 0}
+                  className="btn-primary self-start lg:self-auto"
                 >
-                  <RefreshCw className="h-4 w-4" />
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>Saving…</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4" />
+                      <span>{isSaved ? "Update Attendance" : "Save Attendance"}</span>
+                    </>
+                  )}
                 </button>
               </div>
 
-              {/* Quick Actions & Save Button */}
-              <div className="flex flex-wrap items-center gap-2">
-                {canEdit && (
-                  <>
+              {/* Row 2: Quick Fill Toolbar (Only when roster has students and editable) */}
+              {canEdit && roster.length > 0 && (
+                <div className="flex items-center justify-between border-t border-slate-100 pt-3 dark:border-slate-800">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                      Quick Batch:
+                    </span>
                     <button
                       type="button"
                       onClick={() => setAllMarks("Present")}
@@ -561,28 +591,9 @@ export default function Attendance({ students = [] }) {
                     >
                       Mark All Absent
                     </button>
-                  </>
-                )}
-
-                <button
-                  type="button"
-                  onClick={handleSaveAttendance}
-                  disabled={!canEdit || isSaving || roster.length === 0}
-                  className="btn-primary"
-                >
-                  {isSaving ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>Saving…</span>
-                    </>
-                  ) : (
-                    <>
-                      <Save className="h-4 w-4" />
-                      <span>{isSaved ? "Update Attendance" : "Save Attendance"}</span>
-                    </>
-                  )}
-                </button>
-              </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Edit Window Warning Banner */}

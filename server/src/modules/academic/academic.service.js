@@ -212,6 +212,16 @@ export class AcademicService {
     return { message: `Class "${cls.name}" deleted successfully` };
   }
 
+  static async listSections(schoolId, classId) {
+    const filter = { schoolId };
+    if (classId) filter.classId = classId;
+    return Section.find(filter)
+      .populate("classId", "name order")
+      .populate("classTeacherId", "email phone role")
+      .sort({ name: 1 })
+      .lean();
+  }
+
   static async createSection({
     schoolId,
     classId,

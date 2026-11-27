@@ -49,10 +49,6 @@ const STATUS_OPTIONS = [
 ];
 
 const TYPE_BADGE_STYLES = {
-  teacher: "bg-blue-50 text-blue-700 ring-1 ring-blue-200",
-  accountant: "bg-purple-50 text-purple-700 ring-1 ring-purple-200",
-  admin: "bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200",
-  support: "bg-slate-100 text-slate-700 ring-1 ring-slate-200",
   teacher: "bg-blue-50 text-blue-700 ring-1 ring-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:ring-blue-800",
   accountant: "bg-purple-50 text-purple-700 ring-1 ring-purple-200 dark:bg-purple-950/60 dark:text-purple-300 dark:ring-purple-800",
   admin: "bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200 dark:bg-indigo-950/60 dark:text-indigo-300 dark:ring-indigo-800",
@@ -328,7 +324,6 @@ export default function Teachers({ globalQuery }) {
         subtitle={`${staffList.length} staff members · Academic teachers and institutional staff`}
         action={
           <div className="flex items-center gap-3">
-            <span className="badge bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200">
             <span className="badge bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:ring-emerald-800">
               {activeCount} Active
             </span>
@@ -430,7 +425,6 @@ export default function Teachers({ globalQuery }) {
                       <p className="truncate font-bold text-slate-900">
                         {staff.name}
                       </p>
-                      <span className="font-mono text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
                       <span className="font-mono text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md dark:bg-slate-800 dark:text-slate-400">
                         {staff.employeeNo || "EMP-—"}
                       </span>

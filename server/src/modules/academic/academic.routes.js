@@ -58,6 +58,7 @@ router.delete(
 );
 
 // ─── Sections ────────────────────────────────────────────────────────────────
+router.get("/sections", asyncHandler(AcademicController.listSections));
 router.post(
   "/sections",
   requireRoles(ROLES.SUPER_ADMIN, ROLES.ADMIN),

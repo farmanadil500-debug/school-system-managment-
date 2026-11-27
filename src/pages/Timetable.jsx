@@ -120,8 +120,17 @@ export default function Timetable() {
           }
         }
 
-        if (sectionsRes.status === "fulfilled" && sectionsRes.value?.data) {
+        if (sectionsRes.status === "fulfilled" && sectionsRes.value?.data && sectionsRes.value.data.length > 0) {
           setSectionsList(sectionsRes.value.data);
+        } else if (classesRes.status === "fulfilled" && classesRes.value?.data) {
+          // Extract sections embedded in classes if standalone sections endpoint was empty
+          const extracted = classesRes.value.data.flatMap((c) =>
+            (c.sections || []).map((sec) => ({
+              ...sec,
+              classId: sec.classId?._id || sec.classId || c._id,
+            }))
+          );
+          setSectionsList(extracted);
         }
 
         if (subjectsRes.status === "fulfilled" && subjectsRes.value?.data) {
@@ -316,16 +325,16 @@ export default function Timetable() {
           <button
             onClick={() => setIsPrintModalOpen(true)}
             disabled={activeTab === "section" ? sectionSlots.length === 0 : teacherSlots.length === 0}
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-50"
+            className="btn-secondary"
           >
-            <Printer className="h-4 w-4 text-slate-500" />
+            <Printer className="h-4 w-4" />
             <span>Print Timetable</span>
           </button>
 
           {isAdmin && (
             <button
               onClick={() => setIsAddSlotOpen(true)}
-              className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-brand-700 active:scale-95"
+              className="btn-primary"
             >
               <Plus className="h-4 w-4" />
               <span>Add Lesson Period</span>
@@ -443,11 +452,11 @@ export default function Timetable() {
           {activeTab === "section" ? (
             <>
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Grade / Class</label>
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Grade / Class</label>
                 <select
                   value={selectedClassId}
                   onChange={(e) => setSelectedClassId(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-800 shadow-sm focus:border-brand-500 focus:outline-none"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-800 shadow-sm focus:border-brand-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
                 >
                   {classesList.map((c) => (
                     <option key={c._id} value={c._id}>
@@ -458,29 +467,33 @@ export default function Timetable() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Class Section</label>
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Class Section</label>
                 <select
                   value={selectedSectionId}
                   onChange={(e) => setSelectedSectionId(e.target.value)}
                   disabled={filteredSections.length === 0}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-800 shadow-sm focus:border-brand-500 focus:outline-none disabled:opacity-50"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-800 shadow-sm focus:border-brand-500 focus:outline-none disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
                 >
-                  {filteredSections.map((s) => (
-                    <option key={s._id} value={s._id}>
-                      Section {s.name}
-                    </option>
-                  ))}
+                  {filteredSections.length === 0 ? (
+                    <option value="">No Sections Available</option>
+                  ) : (
+                    filteredSections.map((s) => (
+                      <option key={s._id} value={s._id}>
+                        Section {s.name}
+                      </option>
+                    ))
+                  )}
                 </select>
               </div>
             </>
           ) : (
             <div>
-              <label className="block text-xs font-semibold text-slate-600 mb-1">Faculty Member</label>
+              <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Faculty Member</label>
               <select
                 value={isTeacher && user?.staffId ? user.staffId : selectedStaffId}
                 onChange={(e) => setSelectedStaffId(e.target.value)}
                 disabled={isTeacher}
-                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-800 shadow-sm focus:border-brand-500 focus:outline-none disabled:bg-slate-50"
+                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-800 shadow-sm focus:border-brand-500 focus:outline-none disabled:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:disabled:bg-slate-900"
               >
                 {teachersList.map((t) => (
                   <option key={t._id} value={t._id}>
@@ -492,12 +505,12 @@ export default function Timetable() {
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-1">Day of Week</label>
+            <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Day of Week</label>
             <div className="relative">
               <select
                 value={selectedDay}
                 onChange={(e) => setSelectedDay(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-800 shadow-sm focus:border-brand-500 focus:outline-none"
+                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-800 shadow-sm focus:border-brand-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
               >
                 <option value="all">All Days (Weekly View)</option>
                 {DAYS.map((d) => (

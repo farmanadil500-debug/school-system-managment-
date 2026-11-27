@@ -41,6 +41,11 @@ export class AcademicController {
     res.status(200).json({ success: true, data: classes });
   }
 
+  static async listSections(req, res) {
+    const sections = await AcademicService.listSections(req.user.schoolId, req.query.classId);
+    res.status(200).json({ success: true, data: sections });
+  }
+
   static async createClass(req, res) {
     const cls = await AcademicService.createClass({
       schoolId: req.user.schoolId,

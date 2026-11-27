@@ -27,29 +27,15 @@
   }
 }
 
-/* Silky smooth theme transition across entire application */
+/* Smooth, lag-free theme transitions without table/input layout thrashing */
 body,
-#root,
 header,
-nav,
 aside,
 main,
-section,
-.card,
-.btn,
-.badge,
-input,
-select,
-textarea,
-table,
-thead,
-tbody,
-tr,
-th,
-td {
-  transition-property: background-color, border-color, color, fill, stroke;
-  transition-duration: 250ms;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+nav,
+.card {
+  transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Universal Dark Theme Overrides for high-contrast crisp UI */

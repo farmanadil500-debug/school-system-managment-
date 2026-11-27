@@ -237,14 +237,14 @@ export default function Reports() {
       {activeTab === "attendance" && (
         <div className="space-y-5">
           {/* Filter Bar */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="card p-4">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-5 items-end">
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Grade / Class</label>
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Grade / Class</label>
                 <select
                   value={attClassId}
                   onChange={(e) => setAttClassId(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-medium text-slate-800 shadow-sm focus:border-brand-500 focus:outline-none"
+                  className="input text-xs py-2"
                 >
                   <option value="All">All Grades</option>
                   {classesList.map((c) => (
@@ -256,11 +256,11 @@ export default function Reports() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Section</label>
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Section</label>
                 <select
                   value={attSectionId}
                   onChange={(e) => setAttSectionId(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-medium text-slate-800 shadow-sm focus:border-brand-500 focus:outline-none"
+                  className="input text-xs py-2"
                 >
                   <option value="All">All Sections</option>
                   {filteredAttSections.map((s) => (
@@ -272,22 +272,22 @@ export default function Reports() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">From Date</label>
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">From Date</label>
                 <input
                   type="date"
                   value={attStartDate}
                   onChange={(e) => setAttStartDate(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs text-slate-800 shadow-sm focus:border-brand-500 focus:outline-none"
+                  className="input text-xs py-1.5"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">To Date</label>
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">To Date</label>
                 <input
                   type="date"
                   value={attEndDate}
                   onChange={(e) => setAttEndDate(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs text-slate-800 shadow-sm focus:border-brand-500 focus:outline-none"
+                  className="input text-xs py-1.5"
                 />
               </div>
 
@@ -301,7 +301,7 @@ export default function Reports() {
                       endDate: attEndDate,
                     })
                   }
-                  className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50"
+                  className="btn-secondary w-full text-xs"
                 >
                   <Download className="h-3.5 w-3.5" />
                   <span>Export CSV</span>
@@ -398,25 +398,25 @@ export default function Reports() {
       {activeTab === "fees" && (
         <div className="space-y-5">
           {/* Filter Bar */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="card p-4">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4 items-end">
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Billing Month</label>
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Billing Month</label>
                 <input
                   type="text"
                   placeholder="YYYY-MM"
                   value={feePeriod}
                   onChange={(e) => setFeePeriod(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-800 shadow-sm focus:border-brand-500 focus:outline-none"
+                  className="input text-xs py-2"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Class / Grade</label>
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Class / Grade</label>
                 <select
                   value={feeClassId}
                   onChange={(e) => setFeeClassId(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-medium text-slate-800 shadow-sm focus:border-brand-500 focus:outline-none"
+                  className="input text-xs py-2"
                 >
                   <option value="All">All Grades</option>
                   {classesList.map((c) => (
@@ -428,11 +428,11 @@ export default function Reports() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Voucher Status</label>
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Voucher Status</label>
                 <select
                   value={feeStatus}
                   onChange={(e) => setFeeStatus(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-medium text-slate-800 shadow-sm focus:border-brand-500 focus:outline-none"
+                  className="input text-xs py-2"
                 >
                   <option value="All">All Statuses</option>
                   <option value="paid">Paid</option>
@@ -450,7 +450,7 @@ export default function Reports() {
                       status: feeStatus,
                     })
                   }
-                  className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50"
+                  className="btn-secondary w-full text-xs"
                 >
                   <Download className="h-3.5 w-3.5" />
                   <span>Export Revenue CSV</span>
@@ -552,29 +552,35 @@ export default function Reports() {
       {activeTab === "exams" && (
         <div className="space-y-5">
           {/* Filter Bar */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="card p-4">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 items-end">
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Exam Session</label>
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Exam Session</label>
                 <select
                   value={examId}
                   onChange={(e) => setExamId(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-medium text-slate-800 shadow-sm focus:border-brand-500 focus:outline-none"
+                  disabled={examsList.length === 0}
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-medium text-slate-800 shadow-sm focus:border-brand-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 disabled:opacity-60"
                 >
-                  {examsList.map((ex) => (
-                    <option key={ex._id} value={ex._id}>
-                      {ex.name} ({ex.termName})
-                    </option>
-                  ))}
+                  {examsList.length === 0 ? (
+                    <option value="">No Exam Sessions Found</option>
+                  ) : (
+                    examsList.map((ex) => (
+                      <option key={ex._id} value={ex._id}>
+                        {ex.name} ({ex.termName})
+                      </option>
+                    ))
+                  )}
                 </select>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Section</label>
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Section</label>
                 <select
                   value={examSectionId}
                   onChange={(e) => setExamSectionId(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-medium text-slate-800 shadow-sm focus:border-brand-500 focus:outline-none"
+                  disabled={examsList.length === 0}
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-medium text-slate-800 shadow-sm focus:border-brand-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 disabled:opacity-60"
                 >
                   <option value="All">All Sections</option>
                   {sectionsList.map((s) => (
@@ -593,7 +599,8 @@ export default function Reports() {
                       sectionId: examSectionId,
                     })
                   }
-                  className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50"
+                  disabled={examsList.length === 0 || !examReport?.records?.length}
+                  className="btn-secondary w-full text-xs"
                 >
                   <Download className="h-3.5 w-3.5" />
                   <span>Export Results CSV</span>
@@ -606,36 +613,36 @@ export default function Reports() {
           {examReport?.summary && (
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
               {/* Summary Stats */}
-              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-3">
-                <h4 className="text-sm font-bold text-slate-800">Exam Performance Metrics</h4>
+              <div className="card p-5 space-y-3">
+                <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100">Exam Performance Metrics</h4>
                 <div className="grid grid-cols-2 gap-3 text-xs">
                   <div>
-                    <span className="text-slate-500">Students Evaluated:</span>
-                    <p className="text-lg font-bold text-slate-900">{examReport.summary.totalStudents}</p>
+                    <span className="text-slate-500 dark:text-slate-400">Students Evaluated:</span>
+                    <p className="text-lg font-bold text-slate-900 dark:text-slate-100">{examReport.summary.totalStudents}</p>
                   </div>
                   <div>
-                    <span className="text-slate-500">Class Average:</span>
-                    <p className="text-lg font-bold text-brand-600">{examReport.summary.classAverage}%</p>
+                    <span className="text-slate-500 dark:text-slate-400">Class Average:</span>
+                    <p className="text-lg font-bold text-brand-600 dark:text-brand-400">{examReport.summary.classAverage}%</p>
                   </div>
                   <div>
-                    <span className="text-slate-500">Highest Score:</span>
-                    <p className="text-lg font-bold text-emerald-600">{examReport.summary.highestScore}%</p>
+                    <span className="text-slate-500 dark:text-slate-400">Highest Score:</span>
+                    <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">{examReport.summary.highestScore}%</p>
                   </div>
                   <div>
-                    <span className="text-slate-500">Overall Pass Rate:</span>
-                    <p className="text-lg font-bold text-indigo-600">{examReport.summary.passRate}%</p>
+                    <span className="text-slate-500 dark:text-slate-400">Overall Pass Rate:</span>
+                    <p className="text-lg font-bold text-indigo-600 dark:text-indigo-400">{examReport.summary.passRate}%</p>
                   </div>
                 </div>
               </div>
 
               {/* Grade Distribution Breakdown */}
-              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:col-span-2">
-                <h4 className="text-sm font-bold text-slate-800 mb-3">Letter Grade Distribution</h4>
+              <div className="card p-5 lg:col-span-2">
+                <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-3">Letter Grade Distribution</h4>
                 <div className="grid grid-cols-6 gap-2 text-center text-xs">
                   {Object.entries(examReport.summary.gradeDistribution || {}).map(([grade, count]) => (
-                    <div key={grade} className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
-                      <span className="font-bold text-brand-600 text-base">{grade}</span>
-                      <p className="text-xs font-semibold text-slate-800 mt-1">{count} students</p>
+                    <div key={grade} className="rounded-xl border border-slate-200 bg-slate-50/70 p-3 dark:border-slate-800 dark:bg-slate-800/60">
+                      <span className="font-bold text-brand-600 dark:text-brand-400 text-base">{grade}</span>
+                      <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 mt-1">{count} students</p>
                     </div>
                   ))}
                 </div>
@@ -643,16 +650,32 @@ export default function Reports() {
             </div>
           )}
 
-          {/* Student Rankings Table */}
+          {/* Student Rankings Table / Empty State */}
           {isLoadingExam ? (
-            <div className="flex min-h-[250px] items-center justify-center rounded-2xl border border-slate-200 bg-white">
+            <div className="card flex min-h-[250px] items-center justify-center">
               <Loader2 className="h-6 w-6 animate-spin text-brand-600" />
             </div>
+          ) : examsList.length === 0 ? (
+            <div className="card p-8">
+              <EmptyState
+                icon={GraduationCap}
+                title="No Exam Sessions Found"
+                subtitle="Currently there are no examination sessions created in the database. Go to 'Exams & Report Cards' page to create an exam session (e.g. Mid-Term, Final Term) and record student marks."
+              />
+            </div>
+          ) : !examReport?.records || examReport.records.length === 0 ? (
+            <div className="card p-8">
+              <EmptyState
+                icon={GraduationCap}
+                title="No Exam Results Available Yet"
+                subtitle="This exam session has been created, but marks have not been entered or computed yet. Go to 'Exams & Report Cards' to enter student marks."
+              />
+            </div>
           ) : (
-            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div className="card overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="border-b border-slate-200 bg-slate-50/70 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                  <thead className="border-b border-slate-200 bg-slate-50/70 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-400">
                     <tr>
                       <th className="px-4 py-3">Rank</th>
                       <th className="px-4 py-3">Adm No</th>
@@ -665,40 +688,40 @@ export default function Reports() {
                       <th className="px-4 py-3">Result</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                     {examReport?.records?.map((s) => (
-                      <tr key={s.studentId} className="hover:bg-slate-50/60 transition">
-                        <td className="px-4 py-2.5 font-bold text-slate-800">
+                      <tr key={s.studentId} className="hover:bg-slate-50/60 transition dark:hover:bg-slate-800/50">
+                        <td className="px-4 py-2.5 font-bold text-slate-800 dark:text-slate-200">
                           {s.position === 1 ? (
-                            <span className="inline-flex items-center gap-1 text-amber-600 font-bold">
+                            <span className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400 font-bold">
                               <Award className="h-4 w-4" /> 1st
                             </span>
                           ) : s.position === 2 ? (
-                            <span className="text-slate-600 font-bold">2nd</span>
+                            <span className="text-slate-600 dark:text-slate-300 font-bold">2nd</span>
                           ) : s.position === 3 ? (
-                            <span className="text-amber-800 font-bold">3rd</span>
+                            <span className="text-amber-800 dark:text-amber-300 font-bold">3rd</span>
                           ) : (
                             <span>#{s.position}</span>
                           )}
                         </td>
-                        <td className="px-4 py-2.5 font-mono text-[11px] text-slate-600">{s.admissionNo}</td>
-                        <td className="px-4 py-2.5 font-bold text-slate-900">{s.name}</td>
-                        <td className="px-4 py-2.5 text-slate-600">Sec {s.sectionName}</td>
-                        <td className="px-4 py-2.5 font-semibold text-slate-800">{s.totalObtained}</td>
-                        <td className="px-4 py-2.5 text-slate-500">{s.totalPossible}</td>
-                        <td className="px-4 py-2.5 font-bold text-slate-900">{s.percentage}%</td>
+                        <td className="px-4 py-2.5 font-mono text-[11px] text-slate-600 dark:text-slate-400">{s.admissionNo}</td>
+                        <td className="px-4 py-2.5 font-bold text-slate-900 dark:text-slate-100">{s.name}</td>
+                        <td className="px-4 py-2.5 text-slate-600 dark:text-slate-300">Sec {s.sectionName}</td>
+                        <td className="px-4 py-2.5 font-semibold text-slate-800 dark:text-slate-200">{s.totalObtained}</td>
+                        <td className="px-4 py-2.5 text-slate-500 dark:text-slate-400">{s.totalPossible}</td>
+                        <td className="px-4 py-2.5 font-bold text-slate-900 dark:text-slate-100">{s.percentage}%</td>
                         <td className="px-4 py-2.5">
-                          <span className="rounded-md bg-brand-50 px-2 py-0.5 text-xs font-bold text-brand-700">
+                          <span className="rounded-md bg-brand-50 px-2 py-0.5 text-xs font-bold text-brand-700 dark:bg-brand-950/60 dark:text-brand-300">
                             {s.grade}
                           </span>
                         </td>
                         <td className="px-4 py-2.5">
                           {s.isOverallPass ? (
-                            <span className="rounded-md bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 ring-1 ring-emerald-200">
+                            <span className="rounded-md bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:ring-emerald-800">
                               Passed
                             </span>
                           ) : (
-                            <span className="rounded-md bg-rose-50 px-2 py-0.5 text-[10px] font-bold text-rose-700 ring-1 ring-rose-200">
+                            <span className="rounded-md bg-rose-50 px-2 py-0.5 text-[10px] font-bold text-rose-700 ring-1 ring-rose-200 dark:bg-rose-950/60 dark:text-rose-300 dark:ring-rose-800">
                               Needs Improvement
                             </span>
                           )}
