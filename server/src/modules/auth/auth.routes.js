@@ -14,6 +14,7 @@ const authLimiter = rateLimit({
   max: 20, // 20 attempts per 15 minutes
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { xForwardedForHeader: false, default: false },
   message: {
     success: false,
     error: {

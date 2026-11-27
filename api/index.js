@@ -15,5 +15,13 @@ export default async function handler(req, res) {
       },
     });
   }
+  // Ensure request URL matches Express routes if Vercel modifies path
+  if (req.url && req.url.startsWith("/api/index.js")) {
+    const rawPath = req.headers["x-matched-path"] || req.headers["x-invoke-path"] || "";
+    if (rawPath) {
+      req.url = rawPath;
+    }
+  }
+
   return app(req, res);
 }

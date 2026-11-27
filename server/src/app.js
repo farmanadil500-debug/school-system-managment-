@@ -28,6 +28,9 @@ import legacyAttendanceRoutes from "../routes/attendanceRoutes.js";
 
 const app = express();
 
+// Trust reverse proxy (Vercel / Cloudflare / Heroku)
+app.set("trust proxy", 1);
+
 // Global Security, Logging & Parsing Middlewares
 app.use(securityHeaders);
 app.use(corsMiddleware);
