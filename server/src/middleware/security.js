@@ -9,8 +9,14 @@ export const securityHeaders = helmet();
 // 2. Strict CORS allow-list per architecture.md
 export const corsMiddleware = cors({
   origin: (origin, callback) => {
-    // Allow non-browser requests (like server-to-server or tests) or whitelisted browser origins
-    if (!origin || env.CLIENT_ORIGINS.includes(origin) || env.NODE_ENV !== "production") {
+    // Allow non-browser requests (server-to-server / tests), dev mode, or whitelisted/vercel origins
+    if (
+      !origin ||
+      env.NODE_ENV !== "production" ||
+      env.CLIENT_ORIGINS.includes(origin) ||
+      origin.endsWith(".vercel.app") ||
+      origin.includes("localhost")
+    ) {
       return callback(null, true);
     }
     callback(new Error(`Origin ${origin} not allowed by CORS policy`));

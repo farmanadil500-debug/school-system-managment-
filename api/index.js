@@ -7,6 +7,13 @@ export default async function handler(req, res) {
     await connectDB();
   } catch (err) {
     console.error("Vercel DB connection error:", err.message);
+    return res.status(500).json({
+      success: false,
+      error: {
+        code: "DATABASE_CONNECTION_ERROR",
+        message: "Database connection error: " + err.message,
+      },
+    });
   }
   return app(req, res);
 }

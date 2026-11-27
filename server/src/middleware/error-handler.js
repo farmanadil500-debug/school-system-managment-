@@ -4,7 +4,7 @@ import { env } from "../config/env.js";
 export function errorHandler(err, req, res, _next) {
   let statusCode = 500;
   let code = "INTERNAL_SERVER_ERROR";
-  let message = "An unexpected server error occurred";
+  let message = err.message || "An unexpected server error occurred";
   let details = [];
 
   // 1. ApiError (our custom application error)

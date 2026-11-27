@@ -2,11 +2,13 @@ import mongoose from "mongoose";
 import dns from "dns";
 import { env } from "./env.js";
 
-// Fix for Windows DNS SRV resolution when connecting to MongoDB Atlas
-try {
-  dns.setServers(["8.8.8.8", "8.8.4.4", "1.1.1.1"]);
-} catch {
-  // Ignore in restricted environments
+// Fix for Windows DNS SRV resolution when connecting to MongoDB Atlas (Windows only)
+if (process.platform === "win32") {
+  try {
+    dns.setServers(["8.8.8.8", "8.8.4.4", "1.1.1.1"]);
+  } catch {
+    // Ignore in restricted environments
+  }
 }
 
 // Module-level connection cache for long-running servers & serverless
@@ -21,7 +23,7 @@ export async function connectDB(customUri = null) {
 
   try {
     const conn = await mongoose.connect(uri, {
-      bufferCommands: false,
+      serverSelectionTimeoutMS: 8000,
     });
     cachedConnection = conn;
     return conn;
